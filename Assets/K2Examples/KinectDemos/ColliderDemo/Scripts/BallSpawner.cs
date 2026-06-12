@@ -51,7 +51,7 @@ public class BallSpawner : MonoBehaviour
 
 			Transform ballTransform = Instantiate(ballOrCube > 0 ? ballPrefab : cubePrefab, spawnPos, Quaternion.identity) as Transform;
 			ballTransform.GetComponent<Renderer>().material.color = new Color(Random.Range(0.5f, 1f), Random.Range(0.5f, 1f), Random.Range(0.5f, 1f), 1f);
-			ballTransform.GetComponent<Rigidbody> ().drag = Random.Range(1f, 100f);
+			ballTransform.GetComponent<Rigidbody> ().linearDamping = Random.Range(1f, 100f);
 			ballTransform.parent = transform;
 
 			ballsCount++;

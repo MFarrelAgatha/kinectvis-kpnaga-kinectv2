@@ -190,7 +190,7 @@ public class BallController : MonoBehaviour
 
 					if (rb) 
 					{
-						rb.velocity = throwDir * velocity * velocityScale;
+						rb.linearVelocity = throwDir * velocity * velocityScale;
 						rb.isKinematic = false;
 					}
 
