@@ -3,7 +3,42 @@ guid: 3e8e47eb243aee04e89565d29ea4326b
 ModelImporter:
   serializedVersion: 24200
   internalIDToNameTable: []
-  externalObjects: {}
+  externalObjects:
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: Fabric-0074
+    second: {fileID: 2800000, guid: 0eb1a3f9551e2b24db3812951ece4839, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: Fencing_Lattice_Natural
+    second: {fileID: 2800000, guid: eca5732c6248d7f4a9fdcf1fa252fb00, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: Marble_20_1K_alb
+    second: {fileID: 2800000, guid: 72f3aa3a0835f654db36eceddf2316d8, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: Metal_Corrogated_Shiny
+    second: {fileID: 2800000, guid: ac924410e72f1194a9f9934c830dc74b, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: Wood 02
+    second: {fileID: 2800000, guid: e02c92fb3d01d4a48afc38f319730db8, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: garuda-pancasila-01
+    second: {fileID: 2800000, guid: cbea9115a56e789408fa3bf0874ad5a6, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: woodplank_50_BaseColor-1K
+    second: {fileID: 2800000, guid: 30a501504963a3742a10a7bd57df171d, type: 3}
   materials:
     materialImportMode: 2
     materialName: 0
