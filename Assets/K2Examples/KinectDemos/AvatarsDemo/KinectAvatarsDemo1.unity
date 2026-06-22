@@ -1113,7 +1113,7 @@ MonoBehaviour:
   postureStatusText: {fileID: 1509241166}
   usernameInput: {fileID: 1874540388}
   loginPanel: {fileID: 873190154}
-  trackingJoint: 0
+  trackingJoint: 3
   floorTransform: {fileID: 1482082494}
   sitThreshold: 0.65
   cameraShakeComponent: {fileID: 2132550435}
@@ -2895,8 +2895,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 36
-  m_fontSizeBase: 36
+  m_fontSize: 18.9
+  m_fontSizeBase: 18.9
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18

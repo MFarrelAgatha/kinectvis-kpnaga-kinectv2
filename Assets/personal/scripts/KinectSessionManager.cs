@@ -62,6 +62,10 @@ public class KinectSessionManager : MonoBehaviour
     [Tooltip("Drag your Main Menu Effects component/script here")]
     public MonoBehaviour mainMenuEffectsComponent;
 
+    [Header("Main Menu Optimization Safeguard")]
+    [Tooltip("Drag the GameObject containing your Kinect Avatars, Body Viewers, or Joint meshes here so they stay turned off on the main menu.")]
+    public GameObject kinectTrackingVisuals;
+
     private string currentUsername = "";
     private string currentState = "Unknown";
     private bool isSessionActive = false;
@@ -73,7 +77,6 @@ public class KinectSessionManager : MonoBehaviour
     private Coroutine loggingCoroutine;
     private Coroutine shakeCoroutine;
 
-    // Public getters so the Trigger Manager can inspect the session state safely
     public string CurrentState => currentState;
     public bool IsSessionActive => isSessionActive;
 
@@ -88,7 +91,10 @@ public class KinectSessionManager : MonoBehaviour
     void Start()
     {
         if (triggerStatusText != null) triggerStatusText.text = "";
-        if (postureStatusText != null) postureStatusText.text = "POSTURE: Waiting for tracking...";
+        if (postureStatusText != null) postureStatusText.text = "POSTURE: Waiting for session...";
+
+        // SAFEGUARD: Ensure tracking visualization is turned off on the main menu
+        if (kinectTrackingVisuals != null) kinectTrackingVisuals.SetActive(false);
     }
 
     void Update()
@@ -101,6 +107,7 @@ public class KinectSessionManager : MonoBehaviour
             return;
         }
 
+        // SAFEGUARD: Stop tracking logic processing entirely if we are resting on the login/menu loop
         if (!isSessionActive && !isCalibrating)
         {
             loginPanel.SetActive(true);
@@ -198,6 +205,9 @@ public class KinectSessionManager : MonoBehaviour
 
         if (cameraShakeComponent != null) cameraShakeComponent.enabled = false;
         if (mainMenuEffectsComponent != null) mainMenuEffectsComponent.enabled = false;
+
+        // SAFEGUARD: Awake tracking displays now that registration rules match up
+        if (kinectTrackingVisuals != null) kinectTrackingVisuals.SetActive(true);
 
         if (!File.Exists(filePath))
         {
