@@ -43,6 +43,11 @@ public class KinectTriggerManager : MonoBehaviour
         [Tooltip("How many continuous seconds must the user remain in this state inside the zone before the event fires?")]
         public float continuousDurationRequired = 2.0f;
 
+        [Header("Developer/Testing Tools")]
+        [Tooltip("Press this key in play mode to instantly fire/cancel this event without needing the physical Kinect sensor.")]
+        [KeyBind]
+        public KeyCode debugTriggerKey = KeyCode.None;
+
         // Runtime states managed internally
         [HideInInspector] public bool isUserInside = false;
         [HideInInspector] public float conditionTimer = 0f;
@@ -85,14 +90,30 @@ public class KinectTriggerManager : MonoBehaviour
 
     void Update()
     {
-        if (KinectSessionManager.Instance == null || !KinectSessionManager.Instance.IsSessionActive)
-            return;
-
-        string activeKinectState = KinectSessionManager.Instance.CurrentState;
+        bool sessionActive = (KinectSessionManager.Instance != null && KinectSessionManager.Instance.IsSessionActive);
+        string activeKinectState = sessionActive ? KinectSessionManager.Instance.CurrentState : "Unknown";
 
         foreach (TriggerSetting zone in triggerZones)
         {
-            if (!zone.isUserInside) continue;
+            // --- NEW: DEVELOPER KEYBOARD DEBUGGING ---
+            // Allows testing trigger events without a physical Kinect sensor.
+            if (zone.debugTriggerKey != KeyCode.None && Input.GetKeyDown(zone.debugTriggerKey))
+            {
+                if (!zone.eventHasFired)
+                {
+                    Debug.Log($"[TriggerManager] DEBUG: Manually firing event for '{zone.zoneCollider.gameObject.name}'");
+                    FireZoneEvent(zone);
+                }
+                else
+                {
+                    Debug.Log($"[TriggerManager] DEBUG: Manually canceling event for '{zone.zoneCollider.gameObject.name}'");
+                    CancelActiveZoneEvent(zone);
+                }
+                continue; // Skip the rest of the physical sensor logic for this frame
+            }
+
+            // Only process physical logic if the session is active and user is inside
+            if (!sessionActive || !zone.isUserInside) continue;
 
             // Evaluate if user is currently matching the posture rule criteria
             bool isConditionValid = false;
