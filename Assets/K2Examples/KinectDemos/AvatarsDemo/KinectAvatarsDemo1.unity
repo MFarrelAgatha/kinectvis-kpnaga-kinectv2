@@ -1141,6 +1141,7 @@ MonoBehaviour:
     fadeOutDuration: 0.5
     postureRequirement: 1
     continuousDurationRequired: 2
+    debugTriggerKey: 101
     isUserInside: 0
     conditionTimer: 0
     eventHasFired: 0

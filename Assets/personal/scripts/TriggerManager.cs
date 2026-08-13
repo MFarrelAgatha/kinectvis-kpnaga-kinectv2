@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.InputSystem;
 using System.Collections.Generic;
 using System.Collections;
 using TMPro;
@@ -97,7 +98,7 @@ public class KinectTriggerManager : MonoBehaviour
         {
             // --- NEW: DEVELOPER KEYBOARD DEBUGGING ---
             // Allows testing trigger events without a physical Kinect sensor.
-            if (zone.debugTriggerKey != KeyCode.None && Input.GetKeyDown(zone.debugTriggerKey))
+            if (zone.debugTriggerKey != KeyCode.None && WasDebugKeyPressedThisFrame(zone.debugTriggerKey))
             {
                 if (!zone.eventHasFired)
                 {
@@ -250,6 +251,32 @@ public class KinectTriggerManager : MonoBehaviour
     private bool IsValidUser(Collider other)
     {
         return other.CompareTag("Player") || other.name.Contains("Joint") || other.name.Contains("Avatar");
+    }
+
+    // Player Settings' Active Input Handling is set to "Input System Package" only, so the legacy
+    // UnityEngine.Input class throws. This bridges the inspector's KeyCode to the new Input System.
+    private static readonly Dictionary<KeyCode, Key> DebugKeyCodeOverrides = new Dictionary<KeyCode, Key>
+    {
+        { KeyCode.Alpha0, Key.Digit0 }, { KeyCode.Alpha1, Key.Digit1 }, { KeyCode.Alpha2, Key.Digit2 },
+        { KeyCode.Alpha3, Key.Digit3 }, { KeyCode.Alpha4, Key.Digit4 }, { KeyCode.Alpha5, Key.Digit5 },
+        { KeyCode.Alpha6, Key.Digit6 }, { KeyCode.Alpha7, Key.Digit7 }, { KeyCode.Alpha8, Key.Digit8 },
+        { KeyCode.Alpha9, Key.Digit9 },
+        { KeyCode.Return, Key.Enter }, { KeyCode.KeypadEnter, Key.NumpadEnter },
+        { KeyCode.LeftControl, Key.LeftCtrl }, { KeyCode.RightControl, Key.RightCtrl },
+        { KeyCode.BackQuote, Key.Backquote },
+    };
+
+    private static bool WasDebugKeyPressedThisFrame(KeyCode keyCode)
+    {
+        if (Keyboard.current == null) return false;
+
+        if (!DebugKeyCodeOverrides.TryGetValue(keyCode, out Key key) &&
+            !System.Enum.TryParse(keyCode.ToString(), true, out key))
+        {
+            return false;
+        }
+
+        return Keyboard.current[key].wasPressedThisFrame;
     }
 }
 
