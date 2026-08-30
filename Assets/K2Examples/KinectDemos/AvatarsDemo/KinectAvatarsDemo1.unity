@@ -1135,8 +1135,22 @@ MonoBehaviour:
   - zoneCollider: {fileID: 1600739667}
     messagePanel: {fileID: 318962966}
     panelTextField: {fileID: 1086658402}
-    inspectorMessage: kamu duduk ya mas
-    triggerSFX: {fileID: 8300000, guid: 4cdc2f8e3317dc440bc93ce122b2ce73, type: 3}
+    inspectorMessage: testtrigger001
+    triggerSFX: {fileID: 0}
+    loopAudio: 0
+    fadeOutDuration: 0.5
+    postureRequirement: 1
+    continuousDurationRequired: 2
+    debugTriggerKey: 101
+    isUserInside: 0
+    conditionTimer: 0
+    eventHasFired: 0
+    audioSource: {fileID: 0}
+  - zoneCollider: {fileID: 1600739667}
+    messagePanel: {fileID: 318962966}
+    panelTextField: {fileID: 1086658402}
+    inspectorMessage: testtrigger001
+    triggerSFX: {fileID: 0}
     loopAudio: 0
     fadeOutDuration: 0.5
     postureRequirement: 1
@@ -3065,7 +3079,7 @@ MeshRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1600739666}
-  m_Enabled: 1
+  m_Enabled: 0
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
@@ -3807,13 +3821,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2132550428}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 1, z: -3.364}
+  m_LocalRotation: {x: 0, y: 0.7071068, z: 0, w: 0.7071068}
+  m_LocalPosition: {x: -1.67, y: 1, z: -1.7}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 90, z: 0}
 --- !u!114 &2132550434
 MonoBehaviour:
   m_ObjectHideFlags: 0
