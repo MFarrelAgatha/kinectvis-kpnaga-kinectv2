@@ -42,6 +42,10 @@ public class KinectSessionManager : MonoBehaviour
     public TMP_Text triggerStatusText;
     [Tooltip("Drag a TextMeshPro Text UI element here to see the user's posture state live.")]
     public TMP_Text postureStatusText;
+    [Tooltip("Drag a TextMeshPro Text UI element here to display the active/loaded account name.")]
+    public TMP_Text loadedAccountText;
+    [Tooltip("Drag a TextMeshPro Text UI element here to display the account status.")]
+    public TMP_Text accountStatusText;
     public TMP_InputField usernameInput;
     public GameObject loginPanel;
 
@@ -83,6 +87,9 @@ public class KinectSessionManager : MonoBehaviour
     [DllImport("comdlg32.dll", SetLastError = true, CharSet = CharSet.Auto)]
     private static extern bool GetSaveFileName([In, Out] SaveFileDialogWrapper ofn);
 
+    [DllImport("comdlg32.dll", SetLastError = true, CharSet = CharSet.Auto)]
+    private static extern bool GetOpenFileName([In, Out] SaveFileDialogWrapper ofn);
+
     void Awake()
     {
         if (Instance == null) Instance = this;
@@ -92,6 +99,8 @@ public class KinectSessionManager : MonoBehaviour
     {
         if (triggerStatusText != null) triggerStatusText.text = "";
         if (postureStatusText != null) postureStatusText.text = "POSTURE: Waiting for session...";
+        if (loadedAccountText != null) loadedAccountText.text = "Account: -";
+        if (accountStatusText != null) accountStatusText.text = "Status: Idle";
 
         // SAFEGUARD: Ensure tracking visualization is turned off on the main menu
         if (kinectTrackingVisuals != null) kinectTrackingVisuals.SetActive(false);
@@ -104,6 +113,7 @@ public class KinectSessionManager : MonoBehaviour
             statusText.text = "Waiting for Kinect devices...";
             loginPanel.SetActive(false);
             if (postureStatusText != null) postureStatusText.text = "POSTURE: Kinect Offline";
+            if (accountStatusText != null) accountStatusText.text = "Status: Kinect Offline";
             return;
         }
 
@@ -125,12 +135,14 @@ public class KinectSessionManager : MonoBehaviour
             {
                 statusText.text = "Calibrating... Please step in front of the camera.";
                 if (postureStatusText != null) postureStatusText.text = "POSTURE: User Not Detected";
+                if (accountStatusText != null) accountStatusText.text = "Status: Calibrating (Waiting for User)";
             }
             else
             {
                 isCalibrating = false;
                 isSessionActive = true;
                 statusText.text = "Tracking Active: " + currentUsername + "\nSaving to: " + Path.GetFileName(filePath);
+                if (accountStatusText != null) accountStatusText.text = "Status: Active Tracking";
                 UpdateTriggerStatus(false, "");
             }
             return;
@@ -139,6 +151,10 @@ public class KinectSessionManager : MonoBehaviour
         if (isSessionActive && userId != 0)
         {
             DetectPosture(userId);
+            if (accountStatusText != null && accountStatusText.text == "Status: Tracking Lost")
+            {
+                accountStatusText.text = "Status: Active Tracking";
+            }
         }
         else if (isSessionActive && userId == 0)
         {
@@ -147,7 +163,33 @@ public class KinectSessionManager : MonoBehaviour
                 postureStatusText.text = "POSTURE: Tracking Lost";
                 postureStatusText.color = Color.red;
             }
+            if (accountStatusText != null)
+            {
+                accountStatusText.text = "Status: Tracking Lost";
+            }
         }
+    }
+
+    public string GetSaveFolder()
+    {
+        string saveFolder = Path.Combine(Application.dataPath, "save");
+        if (!Directory.Exists(saveFolder))
+        {
+            Directory.CreateDirectory(saveFolder);
+        }
+        return saveFolder;
+    }
+
+    private void ActivateSession()
+    {
+        loginPanel.SetActive(false);
+        isCalibrating = true;
+
+        if (cameraShakeComponent != null) cameraShakeComponent.enabled = false;
+        if (mainMenuEffectsComponent != null) mainMenuEffectsComponent.enabled = false;
+
+        // SAFEGUARD: Awake tracking displays now that registration rules match up
+        if (kinectTrackingVisuals != null) kinectTrackingVisuals.SetActive(true);
     }
 
     public void StartSession()
@@ -161,13 +203,69 @@ public class KinectSessionManager : MonoBehaviour
             return;
         }
 
+        string saveFolder = GetSaveFolder();
         string chosenPath = "";
+        string defaultFileName = $"{usernameInput.text.Trim()}_Log";
 
 #if UNITY_EDITOR
         chosenPath = UnityEditor.EditorUtility.SaveFilePanel(
             "Select Where to Save your CSV Log File",
-            Application.dataPath,
-            "KinectLogData",
+            saveFolder,
+            defaultFileName,
+            "csv"
+        );
+
+        if (string.IsNullOrEmpty(chosenPath)) return;
+        filePath = chosenPath;
+
+#else
+        SaveFileDialogWrapper ofn = new SaveFileDialogWrapper();
+        ofn.structSize = Marshal.SizeOf(ofn);
+        ofn.filter = "CSV Files (*.csv)\0*.csv\0All Files (*.*)\0*.*\0";
+        
+        string initialFile = defaultFileName + ".csv";
+        char[] fileChars = new char[512];
+        initialFile.CopyTo(0, fileChars, 0, Mathf.Min(initialFile.Length, fileChars.Length - 1));
+        ofn.file = new string(fileChars);
+        ofn.maxFile = ofn.file.Length;
+        ofn.fileTitle = new string(new char[128]);
+        ofn.maxFileTitle = ofn.fileTitle.Length;
+        
+        ofn.initialDir = saveFolder.Replace('/', '\\'); 
+        ofn.title = "Select Where to Save your CSV Log File";
+        ofn.defExt = "csv";
+        ofn.flags = 0x00080000 | 0x00000800 | 0x00000002; 
+
+        if (GetSaveFileName(ofn))
+        {
+            filePath = ofn.file;
+        }
+        else
+        {
+            return; 
+        }
+#endif
+
+        currentUsername = usernameInput.text.Trim();
+        if (loadedAccountText != null) loadedAccountText.text = "Account: " + currentUsername;
+        if (accountStatusText != null) accountStatusText.text = "Status: New Account Created";
+        ActivateSession();
+
+        if (!File.Exists(filePath))
+        {
+            File.WriteAllText(filePath, "Timestamp,Username,State,Trigger_Name,Duration(Seconds)\n");
+        }
+    }
+
+    public void LoadSession()
+    {
+        string saveFolder = GetSaveFolder();
+        string chosenPath = "";
+
+#if UNITY_EDITOR
+        chosenPath = UnityEditor.EditorUtility.OpenFilePanel(
+            "Select Existing CSV Log File to Load",
+            saveFolder,
             "csv"
         );
 
@@ -184,12 +282,12 @@ public class KinectSessionManager : MonoBehaviour
         ofn.fileTitle = new string(new char[128]);
         ofn.maxFileTitle = ofn.fileTitle.Length;
         
-        ofn.initialDir = Application.dataPath.Replace('/', '\\'); 
-        ofn.title = "Select Where to Save your CSV Log File";
+        ofn.initialDir = saveFolder.Replace('/', '\\'); 
+        ofn.title = "Select Existing CSV Log File to Load";
         ofn.defExt = "csv";
-        ofn.flags = 0x00080000 | 0x00000800 | 0x00000002; 
+        ofn.flags = 0x00080000 | 0x00001000 | 0x00000800; 
 
-        if (GetSaveFileName(ofn))
+        if (GetOpenFileName(ofn))
         {
             filePath = ofn.file;
         }
@@ -199,20 +297,66 @@ public class KinectSessionManager : MonoBehaviour
         }
 #endif
 
-        currentUsername = usernameInput.text;
-        loginPanel.SetActive(false);
-        isCalibrating = true;
-
-        if (cameraShakeComponent != null) cameraShakeComponent.enabled = false;
-        if (mainMenuEffectsComponent != null) mainMenuEffectsComponent.enabled = false;
-
-        // SAFEGUARD: Awake tracking displays now that registration rules match up
-        if (kinectTrackingVisuals != null) kinectTrackingVisuals.SetActive(true);
-
         if (!File.Exists(filePath))
+        {
+            statusText.text = "<color=red>File not found!</color>";
+            return;
+        }
+
+        // Parse username from existing CSV if input field is empty
+        string loadedUsername = "";
+        try
+        {
+            string[] lines = File.ReadAllLines(filePath);
+            for (int i = lines.Length - 1; i >= 1; i--)
+            {
+                string line = lines[i].Trim();
+                if (string.IsNullOrEmpty(line)) continue;
+                string[] cols = line.Split(',');
+                if (cols.Length >= 2)
+                {
+                    if (cols[0].Contains("-") || cols[0].Contains(":"))
+                    {
+                        loadedUsername = cols[1].Trim();
+                    }
+                    else
+                    {
+                        loadedUsername = cols[0].Trim();
+                    }
+                    if (!string.IsNullOrEmpty(loadedUsername)) break;
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Debug.LogWarning("[KinectSessionManager] Could not read username from CSV: " + ex.Message);
+        }
+
+        if (!string.IsNullOrEmpty(usernameInput.text) && !string.IsNullOrEmpty(usernameInput.text.Trim()))
+        {
+            currentUsername = usernameInput.text.Trim();
+        }
+        else if (!string.IsNullOrEmpty(loadedUsername))
+        {
+            currentUsername = loadedUsername;
+            usernameInput.text = loadedUsername;
+        }
+        else
+        {
+            currentUsername = Path.GetFileNameWithoutExtension(filePath);
+            usernameInput.text = currentUsername;
+        }
+
+        // Ensure header exists if file was empty
+        if (new FileInfo(filePath).Length == 0)
         {
             File.WriteAllText(filePath, "Timestamp,Username,State,Trigger_Name,Duration(Seconds)\n");
         }
+
+        if (loadedAccountText != null) loadedAccountText.text = "Account: " + currentUsername;
+        if (accountStatusText != null) accountStatusText.text = "Status: Loaded from " + Path.GetFileName(filePath);
+
+        ActivateSession();
     }
 
     private IEnumerator ShakeLoginPanel()
