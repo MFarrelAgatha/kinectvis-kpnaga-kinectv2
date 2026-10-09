@@ -81,7 +81,32 @@ public class KinectSessionManager : MonoBehaviour
     private Coroutine loggingCoroutine;
     private Coroutine shakeCoroutine;
 
-    public string CurrentState => currentState;
+    public string CurrentState
+    {
+        get => currentState;
+        set => currentState = value;
+    }
+
+    /// <summary>
+    /// Memperbarui state postur (Sitting / Standing) secara langsung, disinkronkan dari PlayerTungkuTracker jika diinginkan.
+    /// </summary>
+    public void SetPostureState(string newState, string detailInfo = "")
+    {
+        currentState = newState;
+        if (postureStatusText != null)
+        {
+            if (string.IsNullOrEmpty(detailInfo))
+            {
+                postureStatusText.text = $"STATE: {currentState.ToUpper()}";
+            }
+            else
+            {
+                postureStatusText.text = $"STATE: {currentState.ToUpper()}\n{detailInfo}";
+            }
+            postureStatusText.color = (currentState == "Sitting") ? new Color(0.2f, 0.8f, 1f) : new Color(1f, 0.6f, 0f);
+        }
+    }
+
     public bool IsSessionActive => isSessionActive;
 
     [DllImport("comdlg32.dll", SetLastError = true, CharSet = CharSet.Auto)]
@@ -385,6 +410,20 @@ public class KinectSessionManager : MonoBehaviour
 
     private void DetectPosture(long userId)
     {
+        // Jika PlayerTungkuTracker aktif, sinkronkan langsung status postur fisik avatar
+        if (PlayerTungkuTracker.Instance != null)
+        {
+            currentState = PlayerTungkuTracker.Instance.Posture;
+            if (postureStatusText != null)
+            {
+                bool isSittingOrSquatting = (currentState == "Sitting" || currentState == "Squatting");
+                postureStatusText.text = $"STATE: {currentState.ToUpper()} (Tracker Synced)\n" +
+                                         $"Hip Height: {PlayerTungkuTracker.Instance.HipHeightToGround:F2}m | Knee: {PlayerTungkuTracker.Instance.KneeAngle:F0}°";
+                postureStatusText.color = isSittingOrSquatting ? new Color(0.2f, 0.8f, 1f) : new Color(1f, 0.6f, 0f);
+            }
+            return;
+        }
+
         KinectManager kinect = KinectManager.Instance;
         int jointIndex = (int)trackingJoint;
 

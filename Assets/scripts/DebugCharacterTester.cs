@@ -13,12 +13,18 @@ public class DebugCharacterTester : MonoBehaviour
     [Tooltip("Referensi ke PlayerTungkuTracker. Jika kosong, otomatis mencari di GameObject ini.")]
     public PlayerTungkuTracker tungkuTracker;
 
-    [Header("Status Debug")]
-    [Tooltip("Aktifkan kontrol keyboard WASD dan tombol Jongkok?")]
-    public bool enableDebugControls = true;
+    [Header("Status Debug & Hotkey")]
+    [Tooltip("Tombol hotkey keyboard untuk Mengaktifkan/Mematikan Debug Controls secara instan (Default: F1).")]
+    public KeyCode toggleDebugControlsHotkey = KeyCode.F1;
 
-    [Tooltip("Tampilkan tombol on-screen (GUI) di pojok layar?")]
-    public bool showOnScreenGUI = true;
+    [Tooltip("Tombol hotkey alternatif untuk Toggle Debug Controls (Default: BackQuote / ~).")]
+    public KeyCode alternateToggleHotkey = KeyCode.BackQuote;
+
+    [Tooltip("Aktifkan kontrol keyboard WASD dan tombol Jongkok? (Default: false / dimatikan).")]
+    public bool enableDebugControls = false;
+
+    [Tooltip("Tampilkan tombol on-screen (GUI) di pojok layar? (Default: false / dimatikan).")]
+    public bool showOnScreenGUI = false;
 
     [Header("Pengaturan Pergerakan (WASD)")]
     [Tooltip("Kecepatan jalan normal (meter/detik).")]
@@ -87,6 +93,14 @@ public class DebugCharacterTester : MonoBehaviour
 
     void Update()
     {
+        // 0. Hotkey untuk Menyalakan / Mematikan Debug Controls (F1 atau ~)
+        if (Input.GetKeyDown(toggleDebugControlsHotkey) || Input.GetKeyDown(alternateToggleHotkey))
+        {
+            enableDebugControls = !enableDebugControls;
+            showOnScreenGUI = enableDebugControls;
+            Debug.Log($"[DebugCharacterTester] Debug Controls {(enableDebugControls ? "DIAKTIFKAN [ON]" : "DINONAKTIFKAN [OFF]")}");
+        }
+
         if (!enableDebugControls || playerTransform == null) return;
 
         // 1. Input Keyboard untuk Jongkok (Tombol C atau Left Control)
@@ -182,7 +196,7 @@ public class DebugCharacterTester : MonoBehaviour
         int marginX = Screen.width - panelWidth - 20;
         int marginY = 20;
 
-        GUI.Box(new Rect(marginX, marginY, panelWidth, panelHeight), "<b>[DEBUG CHAR CONTROLLER]</b>");
+        GUI.Box(new Rect(marginX, marginY, panelWidth, panelHeight), $"<b>[DEBUG CHAR CONTROLLER]</b>\n<size=9>(Tekan {toggleDebugControlsHotkey} / ~ utk Hide)</size>");
 
         GUILayout.BeginArea(new Rect(marginX + 10, marginY + 25, panelWidth - 20, panelHeight - 35));
 
