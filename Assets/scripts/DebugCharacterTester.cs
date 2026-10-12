@@ -91,8 +91,27 @@ public class DebugCharacterTester : MonoBehaviour
         }
     }
 
+    void OnDisable()
+    {
+        enableDebugControls = false;
+        showOnScreenGUI = false;
+    }
+
     void Update()
     {
+        // Jika GameObject tester atau avatar player mati, hentikan seluruh kontrol
+        if (!enabled || !gameObject.activeInHierarchy) return;
+
+        if (playerTransform == null || !playerTransform.gameObject.activeInHierarchy)
+        {
+            if (enableDebugControls)
+            {
+                enableDebugControls = false;
+                showOnScreenGUI = false;
+            }
+            return;
+        }
+
         // 0. Hotkey untuk Menyalakan / Mematikan Debug Controls (F1 atau ~)
         if (Input.GetKeyDown(toggleDebugControlsHotkey) || Input.GetKeyDown(alternateToggleHotkey))
         {
@@ -101,7 +120,7 @@ public class DebugCharacterTester : MonoBehaviour
             Debug.Log($"[DebugCharacterTester] Debug Controls {(enableDebugControls ? "DIAKTIFKAN [ON]" : "DINONAKTIFKAN [OFF]")}");
         }
 
-        if (!enableDebugControls || playerTransform == null) return;
+        if (!enableDebugControls) return;
 
         // 1. Input Keyboard untuk Jongkok (Tombol C atau Left Control)
         if (Input.GetKeyDown(crouchKey) || Input.GetKeyDown(alternateCrouchKey))
@@ -188,6 +207,8 @@ public class DebugCharacterTester : MonoBehaviour
     // ==========================================
     void OnGUI()
     {
+        if (!enabled || !gameObject.activeInHierarchy) return;
+        if (playerTransform == null || !playerTransform.gameObject.activeInHierarchy) return;
         if (!enableDebugControls || !showOnScreenGUI) return;
 
         // Panel Kontrol di Kanan Atas Layar

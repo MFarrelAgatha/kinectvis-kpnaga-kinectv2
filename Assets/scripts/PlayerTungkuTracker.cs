@@ -47,6 +47,8 @@ public class PlayerTungkuTracker : MonoBehaviour
     public GameObject panelLogin;
     [Tooltip("Tombol Button di UI untuk membuka panel login (misal Button di Panel Kiri Atas).")]
     public Button buttonBukaLogin;
+    [Tooltip("Teks Nama Profile di Panel Kiri Atas.")]
+    public TMP_Text textProfileName;
 
     [Header("Target Transforms (Public)")]
     [Tooltip("Tarik Transform Player kamu ke sini.")]
@@ -206,6 +208,9 @@ public class PlayerTungkuTracker : MonoBehaviour
     public bool IsJongkok => isJongkok;
     public float JongkokDuration => currentJongkokDuration;
     public float Distance => currentDistance;
+    public float DistanceStuds => currentDistance * 3.5714f;
+    public float DistanceCm => currentDistance * 100f;
+    public float DistanceFeet => currentDistance * 3.28084f;
     public Vector3 DeltaXYZ => currentDeltaXYZ;
     public Vector3 PlayerPosition => currentPlayerPos;
     public Vector3 TungkuPosition => currentTungkuPos;
@@ -276,6 +281,8 @@ public class PlayerTungkuTracker : MonoBehaviour
         {
             ApplyFloorGrounding();
         }
+
+        EnsureHandCollidersAndOrientationPanel();
 
         UpdateTrackingData();
         UpdateUI();
@@ -677,8 +684,8 @@ public class PlayerTungkuTracker : MonoBehaviour
         if (syncWithKinectSessionManager && KinectSessionManager.Instance != null && Application.isPlaying)
         {
             string detail = (currentPostureType != PostureType.Standing)
-                ? $"{GetPostureLabelIndonesian()} | Pinggul: {liveHipHeightToGround:F2}m | Lutut: {liveKneeAngle:F0}°"
-                : "";
+                ? $"{GetPostureLabelIndonesian()} | Arah: {currentFacingCamera} | Pinggul: {liveHipHeightToGround:F2}m | Lutut: {liveKneeAngle:F0}°"
+                : $"Arah: {currentFacingCamera}";
             KinectSessionManager.Instance.SetPostureState(currentPosture, detail);
         }
     }
@@ -754,45 +761,128 @@ public class PlayerTungkuTracker : MonoBehaviour
                 long userId = KinectManager.Instance.GetUserIdByIndex(0);
                 if (userId != 0)
                 {
-                    bool isTurnedAround = KinectManager.Instance.IsUserTurnedAround(userId);
-                    if (isTurnedAround)
+                    // 1. Cek tulang bahu kiri & kanan dari sensor Kinect (Sangat akurat mendeteksi membelakangi kamera)
+                    Vector3 leftShoulder = KinectManager.Instance.GetJointKinectPosition(userId, (int)KinectInterop.JointType.ShoulderLeft);
+                    Vector3 rightShoulder = KinectManager.Instance.GetJointKinectPosition(userId, (int)KinectInterop.JointType.ShoulderRight);
+                    bool shouldersTracked = KinectManager.Instance.IsJointTracked(userId, (int)KinectInterop.JointType.ShoulderLeft) &&
+                                           KinectManager.Instance.IsJointTracked(userId, (int)KinectInterop.JointType.ShoulderRight);
+
+                    // 2. Cek posisi horizontal (Pinggir vs Tengah)
+                    Vector3 spinePos = KinectManager.Instance.GetJointKinectPosition(userId, (int)KinectInterop.JointType.SpineBase);
+                    bool isPinggirKiri = (spinePos.x < -0.85f);
+                    bool isPinggirKanan = (spinePos.x > 0.85f);
+                    string pinggirStatus = isPinggirKiri ? " - Pinggir Kiri" : (isPinggirKanan ? " - Pinggir Kanan" : "");
+
+                    // 3. Cek Face Tracking jika ada FacetrackingManager aktif
+                    FacetrackingManager ftm = FacetrackingManager.Instance;
+                    if (ftm == null) ftm = FindAnyObjectByType<FacetrackingManager>();
+                    bool isTrackingFace = (ftm != null && ftm.IsTrackingFace());
+
+                    if (shouldersTracked)
                     {
-                        currentFacingCamera = "Membelakangi Kamera";
+                        Vector3 shoulderDiff = rightShoulder - leftShoulder;
+                        // Dalam koordinat kamera sensor Kinect:
+                        // Jika menghadap kamera: Bahu kanan pemain ada di kiri layar sensor (shoulderDiff.x < -0.06f)
+                        // Jika membelakangi kamera: Bahu kanan pemain ada di kanan layar sensor (shoulderDiff.x > 0.06f)
+                        float shoulderX = shoulderDiff.x;
+                        float shoulderZ = shoulderDiff.z;
+
+                        if (shoulderX > 0.06f)
+                        {
+                            currentFacingCamera = "Membelakangi Kamera" + pinggirStatus;
+                            currentAngleToCamera = 180f;
+                        }
+                        else if (shoulderX < -0.06f)
+                        {
+                            if (isTrackingFace)
+                            {
+                                Quaternion headRot = ftm.GetHeadRotation(false);
+                                float yaw = headRot.eulerAngles.y;
+                                if (yaw > 180f) yaw -= 360f;
+
+                                if (yaw > 35f)
+                                {
+                                    currentFacingCamera = "Menoleh Kanan" + pinggirStatus;
+                                    currentAngleToCamera = yaw;
+                                }
+                                else if (yaw < -35f)
+                                {
+                                    currentFacingCamera = "Menoleh Kiri" + pinggirStatus;
+                                    currentAngleToCamera = Mathf.Abs(yaw);
+                                }
+                                else
+                                {
+                                    currentFacingCamera = "Menghadap Kamera" + pinggirStatus;
+                                    currentAngleToCamera = 0f;
+                                }
+                            }
+                            else
+                            {
+                                currentFacingCamera = "Menghadap Kamera" + pinggirStatus;
+                                currentAngleToCamera = 0f;
+                            }
+                        }
+                        else
+                        {
+                            // Berdiri Menyamping
+                            if (shoulderZ > 0f)
+                            {
+                                currentFacingCamera = "Menyamping Kiri" + pinggirStatus;
+                                currentAngleToCamera = 90f;
+                            }
+                            else
+                            {
+                                currentFacingCamera = "Menyamping Kanan" + pinggirStatus;
+                                currentAngleToCamera = 90f;
+                            }
+                        }
+
+                        detectedFromKinectHardware = true;
+                    }
+                    else if (KinectManager.Instance.IsUserTurnedAround(userId))
+                    {
+                        currentFacingCamera = "Membelakangi Kamera" + pinggirStatus;
                         currentAngleToCamera = 180f;
+                        detectedFromKinectHardware = true;
                     }
-                    else
-                    {
-                        currentFacingCamera = "Menghadap Kamera";
-                        currentAngleToCamera = 0f;
-                    }
-                    detectedFromKinectHardware = true;
                 }
             }
 
-            if (!detectedFromKinectHardware && sensorCamera != null)
+            if (!detectedFromKinectHardware)
             {
-                Vector3 camPos = sensorCamera.transform.position;
-                Vector3 toCamera = camPos - currentPlayerPos;
-                toCamera.y = 0f;
-                if (toCamera.sqrMagnitude > 0.0001f) toCamera.Normalize();
-                else toCamera = -sensorCamera.transform.forward;
+                Transform orientTrans = (boneHips != null) ? boneHips : playerTransform;
+                playerForward = orientTrans.forward;
+                playerForward.y = 0f;
+                if (playerForward.sqrMagnitude > 0.0001f) playerForward.Normalize();
+                else playerForward = Vector3.forward;
 
-                currentAngleToCamera = Vector3.Angle(playerForward, toCamera);
+                if (sensorCamera != null)
+                {
+                    Vector3 camPos = sensorCamera.transform.position;
+                    Vector3 toCamera = camPos - currentPlayerPos;
+                    toCamera.y = 0f;
+                    if (toCamera.sqrMagnitude > 0.0001f) toCamera.Normalize();
+                    else toCamera = -sensorCamera.transform.forward;
 
-                if (currentAngleToCamera <= facingThresholdAngle)
-                {
-                    currentFacingCamera = "Menghadap Kamera";
-                }
-                else if (currentAngleToCamera >= (180f - facingThresholdAngle))
-                {
-                    currentFacingCamera = "Membelakangi Kamera";
-                }
-                else
-                {
-                    Vector3 cross = Vector3.Cross(playerForward, toCamera);
-                    currentFacingCamera = cross.y > 0
-                        ? "Menyamping Kiri"
-                        : "Menyamping Kanan";
+                    currentAngleToCamera = Vector3.Angle(playerForward, toCamera);
+
+                    // Cek pinggir dari viewport kamera
+                    Vector3 vp = sensorCamera.WorldToViewportPoint(currentPlayerPos);
+                    string pinggirCam = (vp.x < 0.2f) ? " - Pinggir Kiri" : ((vp.x > 0.8f) ? " - Pinggir Kanan" : "");
+
+                    if (currentAngleToCamera <= facingThresholdAngle)
+                    {
+                        currentFacingCamera = "Menghadap Kamera" + pinggirCam;
+                    }
+                    else if (currentAngleToCamera >= (180f - facingThresholdAngle))
+                    {
+                        currentFacingCamera = "Membelakangi Kamera" + pinggirCam;
+                    }
+                    else
+                    {
+                        Vector3 cross = Vector3.Cross(playerForward, toCamera);
+                        currentFacingCamera = (cross.y > 0 ? "Menyamping Kiri" : "Menyamping Kanan") + pinggirCam;
+                    }
                 }
             }
         }
@@ -842,7 +932,7 @@ public class PlayerTungkuTracker : MonoBehaviour
             if (textInfoPosisiJongkok != null)
             {
                 string label = GetPostureLabelIndonesian();
-                textInfoPosisiJongkok.text = $"{label} ({currentFacingCamera})";
+                textInfoPosisiJongkok.text = label;
             }
 
             if (textCounterJongkok != null)
@@ -882,7 +972,7 @@ public class PlayerTungkuTracker : MonoBehaviour
             if (textInfoPosisiJongkok != null)
             {
                 string label = GetPostureLabelIndonesian();
-                textInfoPosisiJongkok.text = $"{label} ({currentFacingCamera})";
+                textInfoPosisiJongkok.text = label;
             }
 
             if (textCounterJongkok != null)
@@ -892,7 +982,7 @@ public class PlayerTungkuTracker : MonoBehaviour
 
             if (textJarakTungkuJongkok != null)
             {
-                textJarakTungkuJongkok.text = (tungkuTransform != null) ? $"{currentDistance:F2} m" : "-";
+                textJarakTungkuJongkok.text = (tungkuTransform != null) ? $"{currentDistance:F2} m ({currentDistance * 3.5714f:F1} studs)" : "-";
             }
         }
 
@@ -910,6 +1000,15 @@ public class PlayerTungkuTracker : MonoBehaviour
             if (buttonBukaLogin.gameObject.activeSelf != shouldShowButton)
             {
                 buttonBukaLogin.gameObject.SetActive(shouldShowButton);
+            }
+        }
+
+        // Sinkronisasi teks Profile Name di Panel Kiri Atas
+        if (KinectSessionManager.Instance != null && !string.IsNullOrEmpty(KinectSessionManager.Instance.CurrentUsername))
+        {
+            if (textProfileName != null && textProfileName.text != KinectSessionManager.Instance.CurrentUsername)
+            {
+                textProfileName.text = KinectSessionManager.Instance.CurrentUsername;
             }
         }
 
@@ -1072,7 +1171,7 @@ public class PlayerTungkuTracker : MonoBehaviour
         if (textInfoPosisiJongkok != null)
         {
             string label = GetPostureLabelIndonesian();
-            textInfoPosisiJongkok.text = $"{label} ({currentFacingCamera})";
+            textInfoPosisiJongkok.text = label;
         }
 
         if (textCounterJongkok != null)
@@ -1155,8 +1254,9 @@ public class PlayerTungkuTracker : MonoBehaviour
         string deltaYStr = FormatSigned(currentDeltaXYZ.y);
         string deltaZStr = FormatSigned(currentDeltaXYZ.z);
 
+        float distStuds = currentDistance * 3.5714f;
         infoText.text =
-            $"<b>Jarak ke Tungku:</b> <color=#00E5FF>{currentDistance:F2} m</color>\n" +
+            $"<b>Jarak ke Tungku:</b> <color=#00E5FF>{currentDistance:F2} m</color> <color=#FFE082>({distStuds:F1} studs | {currentDistance * 100f:F0} cm)</color>\n" +
             $"<b>Durasi Jongkok:</b> <color=#FFE082>{formattedDuration}</color>\n" +
             $"<b>Selisih (ΔXYZ):</b> <color=#FFE082>ΔX: {deltaXStr}m | ΔY: {deltaYStr}m | ΔZ: {deltaZStr}m</color>\n" +
             $"<b>Hadap Kamera Kinect:</b> {currentFacingCamera}\n" +
@@ -1278,6 +1378,27 @@ public class PlayerTungkuTracker : MonoBehaviour
             }
         }
 
+        // Teks Nama Profile (di 'Panel Kiri Atas')
+        if (textProfileName == null)
+        {
+            GameObject panelKiriAtas = FindObjectInScene("Panel Kiri Atas");
+            if (panelKiriAtas != null)
+            {
+                TMP_Text[] texts = panelKiriAtas.GetComponentsInChildren<TMP_Text>(true);
+                foreach (var t in texts)
+                {
+                    if (t.GetComponentInParent<Button>() != null) continue;
+                    string n = t.gameObject.name.ToLower();
+                    string txt = t.text.ToLower();
+                    if (n.Contains("profile") || txt.Contains("profile") || txt.Contains("nama") || t.fontSize > 20f)
+                    {
+                        textProfileName = t;
+                        break;
+                    }
+                }
+            }
+        }
+
         EnsurePanelImages();
     }
 
@@ -1377,6 +1498,39 @@ public class PlayerTungkuTracker : MonoBehaviour
     private string FormatSigned(float val)
     {
         return val >= 0f ? $"+{val:F2}" : $"{val:F2}";
+    }
+
+    /// <summary>
+    /// Memastikan collider tangan kiri & kanan terpasang pada avatar, dan panel orientasi Kinect aktif.
+    /// </summary>
+    private void EnsureHandCollidersAndOrientationPanel()
+    {
+        if (playerTransform != null)
+        {
+            PlayerHandColliderSetup handSetup = playerTransform.GetComponent<PlayerHandColliderSetup>();
+            if (handSetup == null)
+            {
+                handSetup = playerTransform.gameObject.AddComponent<PlayerHandColliderSetup>();
+            }
+        }
+        else
+        {
+            AvatarController ac = FindAnyObjectByType<AvatarController>();
+            if (ac != null)
+            {
+                PlayerHandColliderSetup handSetup = ac.GetComponent<PlayerHandColliderSetup>();
+                if (handSetup == null)
+                {
+                    handSetup = ac.gameObject.AddComponent<PlayerHandColliderSetup>();
+                }
+            }
+        }
+
+        KinectOrientationPanel orientationPanel = FindAnyObjectByType<KinectOrientationPanel>();
+        if (orientationPanel == null)
+        {
+            gameObject.AddComponent<KinectOrientationPanel>();
+        }
     }
 }
 

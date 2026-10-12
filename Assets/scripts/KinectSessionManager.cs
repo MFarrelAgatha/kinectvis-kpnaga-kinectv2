@@ -44,10 +44,14 @@ public class KinectSessionManager : MonoBehaviour
     public TMP_Text postureStatusText;
     [Tooltip("Drag a TextMeshPro Text UI element here to display the active/loaded account name.")]
     public TMP_Text loadedAccountText;
+    [Tooltip("Drag a TextMeshPro Text UI element here to display the profile name (misal: 'Nama Profile' di Panel Kiri Atas).")]
+    public TMP_Text profileNameText;
     [Tooltip("Drag a TextMeshPro Text UI element here to display the account status.")]
     public TMP_Text accountStatusText;
     public TMP_InputField usernameInput;
     public GameObject loginPanel;
+
+    public string CurrentUsername => currentUsername;
 
     [Header("Custom Algorithm Settings")]
     [Tooltip("Select which specific bone/joint you want to track from the dropdown.")]
@@ -59,6 +63,74 @@ public class KinectSessionManager : MonoBehaviour
     [Range(0.05f, 1.50f)]
     [Tooltip("Distance threshold (meters) from the selected bone to the floor to trigger the 'Sitting' state.")]
     public float sitThreshold = 0.25f;
+
+    [Header("Lokasi & Jarak ke Tungku (Multi-Units & XYZ)")]
+    [Tooltip("Transform objek Tungku di scene. Jika kosong, otomatis mencari GameObject 'Tungku'.")]
+    public Transform tungkuTransform;
+
+    [Tooltip("Transform avatar player di scene. Jika kosong, otomatis mengambil dari PlayerTungkuTracker / scene.")]
+    public Transform playerTransform;
+
+    [Tooltip("Rasio konversi 1 meter ke Studs. Default: 3.5714 studs/meter (standard Roblox: 1 stud = 0.28m).")]
+    public float studsPerMeter = 3.5714f;
+
+    [Tooltip("UI TextMeshPro opsional untuk menampilkan info jarak dan koordinat Tungku secara realtime.")]
+    public TMP_Text tungkuLocationText;
+
+    [Header("Live Data Jarak ke Tungku (Multi-Units)")]
+    [Tooltip("Jarak total Euclidean dalam Meter (m).")]
+    public float distanceMeters = 0f;
+
+    [Tooltip("Jarak total dalam Studs (studs).")]
+    public float distanceStuds = 0f;
+
+    [Tooltip("Jarak total dalam Centimeter (cm).")]
+    public float distanceCentimeters = 0f;
+
+    [Tooltip("Jarak total dalam Feet (ft).")]
+    public float distanceFeet = 0f;
+
+    [Tooltip("Jarak total dalam Inches (in).")]
+    public float distanceInches = 0f;
+
+    [Header("Live Data Selisih Koordinat (Delta XYZ)")]
+    [Tooltip("Selisih vektor posisi Player dikurangi Tungku dalam Meter.")]
+    public Vector3 deltaXYZ_Meters = Vector3.zero;
+
+    [Tooltip("Selisih vektor posisi dalam Studs.")]
+    public Vector3 deltaXYZ_Studs = Vector3.zero;
+
+    public float DeltaX_Meters => deltaXYZ_Meters.x;
+    public float DeltaY_Meters => deltaXYZ_Meters.y;
+    public float DeltaZ_Meters => deltaXYZ_Meters.z;
+    public float DeltaX_Studs => deltaXYZ_Studs.x;
+    public float DeltaY_Studs => deltaXYZ_Studs.y;
+    public float DeltaZ_Studs => deltaXYZ_Studs.z;
+
+    [Header("Live Data Posisi World (Player & Tungku XYZ)")]
+    [Tooltip("Posisi Player di World Space (X, Y, Z).")]
+    public Vector3 playerWorldPos = Vector3.zero;
+
+    [Tooltip("Posisi Tungku di World Space (X, Y, Z).")]
+    public Vector3 tungkuWorldPos = Vector3.zero;
+
+    [Header("Formatted Text Summary")]
+    [Tooltip("String terformat jarak ke tungku untuk tampilan UI/debug.")]
+    public string distanceFormatted = "-";
+
+    [Tooltip("String terformat selisih XYZ ke tungku untuk tampilan UI/debug.")]
+    public string deltaXYZFormatted = "-";
+
+    // Public properties
+    public float DistanceMeters => distanceMeters;
+    public float DistanceStuds => distanceStuds;
+    public float DistanceCm => distanceCentimeters;
+    public float DistanceFeet => distanceFeet;
+    public float DistanceInches => distanceInches;
+    public Vector3 DeltaXYZ_Meters => deltaXYZ_Meters;
+    public Vector3 DeltaXYZ_Studs => deltaXYZ_Studs;
+    public Vector3 PlayerWorldPos => playerWorldPos;
+    public Vector3 TungkuWorldPos => tungkuWorldPos;
 
     [Header("Menu Effects to Disable on Start")]
     [Tooltip("Drag your Main Camera here (Unity will automatically find the shake script)")]
@@ -118,17 +190,94 @@ public class KinectSessionManager : MonoBehaviour
     void Awake()
     {
         if (Instance == null) Instance = this;
+        AutoFindProfileTexts();
     }
 
     void Start()
     {
+        AutoFindProfileTexts();
+        UpdateProfileAccountUI();
+
         if (triggerStatusText != null) triggerStatusText.text = "";
         if (postureStatusText != null) postureStatusText.text = "POSTURE: Waiting for session...";
-        if (loadedAccountText != null) loadedAccountText.text = "Account: -";
         if (accountStatusText != null) accountStatusText.text = "Status: Idle";
 
         // SAFEGUARD: Ensure tracking visualization is turned off on the main menu
         if (kinectTrackingVisuals != null) kinectTrackingVisuals.SetActive(false);
+    }
+
+    public void AutoFindProfileTexts()
+    {
+        // Jika profileNameText belum di-assign, atau accountStatusText salah mengarah ke teks nama profile
+        if (profileNameText == null && accountStatusText != null)
+        {
+            if (accountStatusText.text.IndexOf("Profile", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                accountStatusText.gameObject.name.IndexOf("Profile", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                accountStatusText.fontSize > 20f)
+            {
+                profileNameText = accountStatusText;
+                accountStatusText = null;
+            }
+        }
+
+        if (profileNameText == null)
+        {
+            GameObject panelKiriAtas = GameObject.Find("Panel Kiri Atas");
+            if (panelKiriAtas != null)
+            {
+                TMP_Text[] texts = panelKiriAtas.GetComponentsInChildren<TMP_Text>(true);
+                foreach (var t in texts)
+                {
+                    if (t == loadedAccountText || t == statusText || t.GetComponentInParent<UnityEngine.UI.Button>() != null) continue;
+                    string n = t.gameObject.name.ToLower();
+                    string txt = t.text.ToLower();
+                    if (n.Contains("profile") || txt.Contains("profile") || txt.Contains("nama") || t.fontSize > 20f)
+                    {
+                        profileNameText = t;
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
+    public void UpdateProfileAccountUI()
+    {
+        AutoFindProfileTexts();
+
+        string displayName = !string.IsNullOrEmpty(currentUsername) ? currentUsername : "-";
+
+        if (profileNameText != null)
+        {
+            profileNameText.text = displayName;
+        }
+
+        if (loadedAccountText != null)
+        {
+            loadedAccountText.text = !string.IsNullOrEmpty(currentUsername) ? "Account: " + currentUsername : "Account: -";
+        }
+
+        // Cari juga secara dinamis di Panel Kiri Atas agar semua teks profile/account sinkron
+        GameObject panelKiriAtas = GameObject.Find("Panel Kiri Atas");
+        if (panelKiriAtas != null)
+        {
+            TMP_Text[] allTexts = panelKiriAtas.GetComponentsInChildren<TMP_Text>(true);
+            foreach (var t in allTexts)
+            {
+                if (t == null) continue;
+                if (t == profileNameText || t == loadedAccountText) continue;
+                if (t == accountStatusText || t == statusText || t.GetComponentInParent<UnityEngine.UI.Button>() != null) continue;
+
+                if (t.text.IndexOf("Nama Profile", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                    t.text.IndexOf("Profile", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                    t.text.IndexOf("Account:", StringComparison.OrdinalIgnoreCase) >= 0)
+                {
+                    t.text = displayName;
+                }
+            }
+        }
+
+        Debug.Log($"<color=#00FFAA>[KinectSessionManager]</color> Profile account UI diupdate ke: <b>{displayName}</b>");
     }
 
     void Update()
@@ -192,6 +341,93 @@ public class KinectSessionManager : MonoBehaviour
             {
                 accountStatusText.text = "Status: Tracking Lost";
             }
+        }
+
+        // Hitung jarak multi-unit dan koordinat XYZ ke Tungku secara realtime
+        UpdateTungkuLocation();
+    }
+
+    /// <summary>
+    /// Menghitung jarak ke Tungku dalam Meter, Studs, CM, Feet, Inches, serta selisih Delta XYZ dan koordinat World.
+    /// </summary>
+    public void UpdateTungkuLocation()
+    {
+        // 1. Cari referensi Tungku dan Player secara otomatis jika kosong
+        if (tungkuTransform == null)
+        {
+            if (PlayerTungkuTracker.Instance != null && PlayerTungkuTracker.Instance.tungkuTransform != null)
+            {
+                tungkuTransform = PlayerTungkuTracker.Instance.tungkuTransform;
+            }
+            else
+            {
+                GameObject tungkuObj = GameObject.Find("Tungku");
+                if (tungkuObj != null) tungkuTransform = tungkuObj.transform;
+            }
+        }
+
+        if (playerTransform == null)
+        {
+            if (PlayerTungkuTracker.Instance != null && PlayerTungkuTracker.Instance.playerTransform != null)
+            {
+                playerTransform = PlayerTungkuTracker.Instance.playerTransform;
+            }
+            else
+            {
+                AvatarController ac = FindAnyObjectByType<AvatarController>();
+                if (ac != null) playerTransform = ac.transform;
+                else
+                {
+                    GameObject pObj = GameObject.FindWithTag("Player");
+                    if (pObj != null) playerTransform = pObj.transform;
+                }
+            }
+        }
+
+        if (tungkuTransform == null || playerTransform == null)
+        {
+            distanceMeters = 0f;
+            distanceStuds = 0f;
+            distanceCentimeters = 0f;
+            distanceFeet = 0f;
+            distanceInches = 0f;
+            deltaXYZ_Meters = Vector3.zero;
+            deltaXYZ_Studs = Vector3.zero;
+            distanceFormatted = "-";
+            deltaXYZFormatted = "-";
+            return;
+        }
+
+        // 2. Ambil koordinat world space
+        playerWorldPos = playerTransform.position;
+        tungkuWorldPos = tungkuTransform.position;
+
+        // 3. Hitung selisih koordinat (Delta XYZ)
+        deltaXYZ_Meters = playerWorldPos - tungkuWorldPos;
+        float studRatio = studsPerMeter > 0.001f ? studsPerMeter : 3.5714f;
+        deltaXYZ_Studs = deltaXYZ_Meters * studRatio;
+
+        // 4. Hitung jarak langsung (Euclidean Distance) dalam multi-satuan
+        distanceMeters = Vector3.Distance(playerWorldPos, tungkuWorldPos);
+        distanceStuds = distanceMeters * studRatio;
+        distanceCentimeters = distanceMeters * 100f;
+        distanceFeet = distanceMeters * 3.28084f;
+        distanceInches = distanceFeet * 12f;
+
+        // 5. Format string rangkuman (m, studs, cm, ft, inches, dan XYZ)
+        distanceFormatted = $"{distanceMeters:F2} m | {distanceStuds:F2} studs ({distanceCentimeters:F0} cm | {distanceFeet:F2} ft)";
+
+        string signX = deltaXYZ_Meters.x >= 0 ? "+" : "";
+        string signY = deltaXYZ_Meters.y >= 0 ? "+" : "";
+        string signZ = deltaXYZ_Meters.z >= 0 ? "+" : "";
+        deltaXYZFormatted = $"X: {signX}{deltaXYZ_Meters.x:F2}m ({signX}{deltaXYZ_Studs.x:F2} st) | " +
+                             $"Y: {signY}{deltaXYZ_Meters.y:F2}m ({signY}{deltaXYZ_Studs.y:F2} st) | " +
+                             $"Z: {signZ}{deltaXYZ_Meters.z:F2}m ({signZ}{deltaXYZ_Studs.z:F2} st)";
+
+        // 6. Update UI Text opsional jika ditugaskan
+        if (tungkuLocationText != null)
+        {
+            tungkuLocationText.text = $"<b>JARAK TUNGKU:</b> {distanceFormatted}\n<b>SELISIH XYZ:</b> {deltaXYZFormatted}";
         }
     }
 
@@ -272,7 +508,7 @@ public class KinectSessionManager : MonoBehaviour
 #endif
 
         currentUsername = usernameInput.text.Trim();
-        if (loadedAccountText != null) loadedAccountText.text = "Account: " + currentUsername;
+        UpdateProfileAccountUI();
         if (accountStatusText != null) accountStatusText.text = "Status: New Account Created";
         ActivateSession();
 
@@ -357,28 +593,33 @@ public class KinectSessionManager : MonoBehaviour
             Debug.LogWarning("[KinectSessionManager] Could not read username from CSV: " + ex.Message);
         }
 
-        if (!string.IsNullOrEmpty(usernameInput.text) && !string.IsNullOrEmpty(usernameInput.text.Trim()))
-        {
-            currentUsername = usernameInput.text.Trim();
-        }
-        else if (!string.IsNullOrEmpty(loadedUsername))
+        // Prioritaskan nama akun dari isi file CSV yang dipilih, bukan input field lama
+        if (!string.IsNullOrEmpty(loadedUsername))
         {
             currentUsername = loadedUsername;
-            usernameInput.text = loadedUsername;
         }
         else
         {
-            currentUsername = Path.GetFileNameWithoutExtension(filePath);
+            string cleanFn = Path.GetFileNameWithoutExtension(filePath);
+            if (cleanFn.EndsWith("_Log", StringComparison.OrdinalIgnoreCase))
+            {
+                cleanFn = cleanFn.Substring(0, cleanFn.Length - 4);
+            }
+            currentUsername = cleanFn;
+        }
+
+        if (usernameInput != null)
+        {
             usernameInput.text = currentUsername;
         }
 
         // Ensure header exists if file was empty
         if (new FileInfo(filePath).Length == 0)
         {
-            File.WriteAllText(filePath, "Timestamp,Username,State,Trigger_Name,Duration(Seconds)\n");
+            File.WriteAllText(filePath, "Timestamp,Username,State,Trigger_Name,Duration(Seconds),Dist_Meters,Dist_Studs,Dist_Cm,Dist_Feet,Delta_X_m,Delta_Y_m,Delta_Z_m,Delta_X_studs,Delta_Y_studs,Delta_Z_studs,Player_X,Player_Y,Player_Z,Tungku_X,Tungku_Y,Tungku_Z\n");
         }
 
-        if (loadedAccountText != null) loadedAccountText.text = "Account: " + currentUsername;
+        UpdateProfileAccountUI();
         if (accountStatusText != null) accountStatusText.text = "Status: Loaded from " + Path.GetFileName(filePath);
 
         ActivateSession();
@@ -492,7 +733,12 @@ public class KinectSessionManager : MonoBehaviour
             activeTriggerDuration += 1f;
 
             string currentTime = System.DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
-            string logEntry = $"{currentTime},{currentUsername},{currentState},{activeTriggerName},{activeTriggerDuration.ToString("F1")}\n";
+            string logEntry = $"{currentTime},{currentUsername},{currentState},{activeTriggerName},{activeTriggerDuration:F1}," +
+                              $"{distanceMeters:F2},{distanceStuds:F2},{distanceCentimeters:F1},{distanceFeet:F2}," +
+                              $"{deltaXYZ_Meters.x:F2},{deltaXYZ_Meters.y:F2},{deltaXYZ_Meters.z:F2}," +
+                              $"{deltaXYZ_Studs.x:F2},{deltaXYZ_Studs.y:F2},{deltaXYZ_Studs.z:F2}," +
+                              $"{playerWorldPos.x:F2},{playerWorldPos.y:F2},{playerWorldPos.z:F2}," +
+                              $"{tungkuWorldPos.x:F2},{tungkuWorldPos.y:F2},{tungkuWorldPos.z:F2}\n";
             File.AppendAllText(filePath, logEntry);
         }
     }

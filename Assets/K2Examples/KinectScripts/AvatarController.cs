@@ -70,6 +70,17 @@ public class AvatarController : MonoBehaviour
 	public bool flipLeftRight = false;
 
 
+	[Header("Sensor Placement & Axis Orientation")]
+	[Tooltip("Invert forward/backward movement (Z-axis). Turn this ON if approaching the physical Kinect causes the character to walk away.")]
+	public bool invertZMovement = false;
+
+	[Tooltip("Invert left/right movement (X-axis).")]
+	public bool invertXMovement = false;
+
+	[Tooltip("Sensor placement angle in room: 0=Front/Atas, 90=Right/Kanan, 180=Back/Bawah, 270=Left/Kiri.")]
+	[Range(0f, 360f)]
+	public float sensorPlacementAngle = 0f;
+
     [Tooltip("Horizontal offset of the avatar with respect to the position of user's spine-base.")]
     [Range(-0.5f, 0.5f)]
     public float horizontalOffset = 0f;
@@ -1386,16 +1397,15 @@ public class AvatarController : MonoBehaviour
 	protected Quaternion Kinect2AvatarRot(Quaternion jointRotation, int boneIndex)
 	{
 		Quaternion newRotation = jointRotation * initialRotations[boneIndex];
-		//newRotation = initialRotation * newRotation;
 
-//		if(offsetNode != null)
-//		{
-//			newRotation = offsetNode.transform.rotation * newRotation;
-//		}
-//		else
 		if (!externalRootMotion)  // fix by Mathias Parger
 		{
 			newRotation = initialRotation * newRotation;
+		}
+
+		if (sensorPlacementAngle != 0f)
+		{
+			newRotation = Quaternion.Euler(0f, sensorPlacementAngle, 0f) * newRotation;
 		}
 		
 		return newRotation;
@@ -1407,6 +1417,23 @@ public class AvatarController : MonoBehaviour
 		float xPos = (jointPosition.x - offsetPos.x) * moveRate;
 		float yPos = (jointPosition.y - offsetPos.y) * moveRate;
 		float zPos = !mirroredMovement && !posRelativeToCamera ? (-jointPosition.z - offsetPos.z) * moveRate : (jointPosition.z - offsetPos.z) * moveRate;
+
+		if (invertZMovement)
+		{
+			zPos = -zPos;
+		}
+
+		if (invertXMovement)
+		{
+			xPos = -xPos;
+		}
+
+		if (sensorPlacementAngle != 0f)
+		{
+			Vector3 rotated = Quaternion.Euler(0f, sensorPlacementAngle, 0f) * new Vector3(xPos, 0f, zPos);
+			xPos = rotated.x;
+			zPos = rotated.z;
+		}
 		
 		Vector3 newPosition = new Vector3(bMoveHorizontally ? xPos : 0f, bMoveVertically ? yPos : 0f, bMoveHorizontally ? zPos : 0f);
 
@@ -1420,6 +1447,14 @@ public class AvatarController : MonoBehaviour
 		}
 		
 		return newPosition;
+	}
+
+	/// <summary>
+	/// Resets the calibration offset so the avatar doesn't jerk when sensor orientation is updated.
+	/// </summary>
+	public void RecalibrateOffset()
+	{
+		offsetCalibrated = false;
 	}
 
     // returns distance from the given transform to the underlying object. The player must be in IgnoreRaycast layer.

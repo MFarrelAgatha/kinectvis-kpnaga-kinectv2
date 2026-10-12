@@ -48,8 +48,11 @@ public class KinectTriggerManager : MonoBehaviour
         [Tooltip("Syarat postur yang harus dipenuhi user untuk memicu zona ini.")]
         public PostureRequirement postureRequirement = PostureRequirement.AnyState;
 
-        [Tooltip("Berapa detik berturut-turut user harus berada dalam postur ini di dalam zona sebelum event terpicu?")]
+        [Tooltip("Berapa detik berturut-turut user harus berada dalam postur ini di dalam zona sebelum event terpicu? Isi 0 untuk langsung aktif saat disentuh.")]
         public float continuousDurationRequired = 2.0f;
+
+        [Tooltip("Jika true, sentuhan tangan langsung memicu trigger tanpa harus menunggu durasi continuousDurationRequired.")]
+        public bool instantHandTouch = false;
 
         // Runtime states managed internally
         [HideInInspector] public bool isUserInside = false;
@@ -57,6 +60,7 @@ public class KinectTriggerManager : MonoBehaviour
         [HideInInspector] public bool eventHasFired = false;
         [HideInInspector] public AudioSource audioSource;
         [HideInInspector] public Coroutine fadeCoroutine;
+        [HideInInspector] public HashSet<Collider> occupants = new HashSet<Collider>();
     }
 
     [Header("Global UI Message Overlay (Public)")]
@@ -69,12 +73,25 @@ public class KinectTriggerManager : MonoBehaviour
     [Tooltip("TextMeshPro text component untuk INFORMASI / PESAN di dalam panel UI tersebut.")]
     public TMP_Text panelTextField;
 
+    [Header("Session Requirement")]
+    [Tooltip("Jika true, trigger hanya aktif saat session logging KinectSessionManager sedang berjalan. Jika false, trigger selalu aktif untuk testing/in-game.")]
+    public bool requireActiveSession = false;
+
     [Header("Global Trigger Configurations List")]
     [Tooltip("Daftar konfigurasi trigger zones. Klik '+' untuk menambah zona baru.")]
     public List<TriggerSetting> triggerZones = new List<TriggerSetting>();
 
+    public static KinectTriggerManager Instance { get; private set; }
+
+    void Awake()
+    {
+        if (Instance == null) Instance = this;
+    }
+
     void Start()
     {
+        if (Instance == null) Instance = this;
+
         // Pastikan panel pesan global awalnya nonaktif
         if (messagePanel != null)
         {
@@ -85,16 +102,25 @@ public class KinectTriggerManager : MonoBehaviour
         {
             if (zone.zoneCollider == null)
             {
-                Debug.LogWarning($"[TriggerManager] Entry '{zone.zoneName}' missing its 'Zone Collider' reference on: {gameObject.name}");
+                Debug.LogWarning($"[KinectTriggerManager] Entry '{zone.zoneName}' missing its 'Zone Collider' reference on: {gameObject.name}");
                 continue;
             }
 
             zone.zoneCollider.isTrigger = true;
 
-            // DYNAMIC HYBRID AUDIO: Creates an isolated 2D channel right on this manager per zone item
+            // Pastikan zone collider memiliki kinematic Rigidbody agar PhysX menjamin trigger callbacks aktif
+            Rigidbody zoneRb = zone.zoneCollider.GetComponent<Rigidbody>();
+            if (zoneRb == null)
+            {
+                zoneRb = zone.zoneCollider.gameObject.AddComponent<Rigidbody>();
+            }
+            zoneRb.isKinematic = true;
+            zoneRb.useGravity = false;
+
+            // Inisialisasi audio channel per zona
             zone.audioSource = gameObject.AddComponent<AudioSource>();
             zone.audioSource.playOnAwake = false;
-            zone.audioSource.spatialBlend = 0f; // Hard-coded to 2D for loud, clear room-wide sound
+            zone.audioSource.spatialBlend = 0f; // 2D channel
             zone.audioSource.clip = zone.triggerSFX;
             zone.audioSource.loop = zone.loopAudio;
 
@@ -107,10 +133,10 @@ public class KinectTriggerManager : MonoBehaviour
 
     void Update()
     {
-        if (KinectSessionManager.Instance == null || !KinectSessionManager.Instance.IsSessionActive)
+        if (requireActiveSession && (KinectSessionManager.Instance == null || !KinectSessionManager.Instance.IsSessionActive))
             return;
 
-        string activeKinectState = KinectSessionManager.Instance.CurrentState;
+        string activeKinectState = KinectSessionManager.Instance != null ? KinectSessionManager.Instance.CurrentState : "Standing";
         PostureType activePlayerPosture = PlayerTungkuTracker.Instance != null
             ? PlayerTungkuTracker.Instance.CurrentPostureType
             : PostureType.Standing;
@@ -119,68 +145,26 @@ public class KinectTriggerManager : MonoBehaviour
         {
             if (!zone.isUserInside) continue;
 
-            // Evaluate if user is currently matching the posture rule criteria
-            bool isConditionValid = false;
+            // Evaluasi syarat postur
+            bool isConditionValid = CheckPostureCondition(zone.postureRequirement, activePlayerPosture, activeKinectState);
 
-            if (PlayerTungkuTracker.Instance != null)
-            {
-                switch (zone.postureRequirement)
-                {
-                    case PostureRequirement.AnyState:
-                        isConditionValid = true;
-                        break;
-                    case PostureRequirement.SquattingOnly:
-                        isConditionValid = (activePlayerPosture == PostureType.Squatting);
-                        break;
-                    case PostureRequirement.SittingChairOnly:
-                        isConditionValid = (activePlayerPosture == PostureType.SittingChair);
-                        break;
-                    case PostureRequirement.SittingFloorOnly:
-                        isConditionValid = (activePlayerPosture == PostureType.SittingFloor);
-                        break;
-                    case PostureRequirement.StandingOnly:
-                        isConditionValid = (activePlayerPosture == PostureType.Standing);
-                        break;
-                    case PostureRequirement.SittingAny:
-                        isConditionValid = (activePlayerPosture == PostureType.SittingChair || activePlayerPosture == PostureType.SittingFloor);
-                        break;
-                }
-            }
-            else
-            {
-                switch (zone.postureRequirement)
-                {
-                    case PostureRequirement.AnyState:
-                        isConditionValid = (activeKinectState == "Sitting" || activeKinectState == "Standing" || activeKinectState == "Squatting");
-                        break;
-                    case PostureRequirement.SquattingOnly:
-                        isConditionValid = (activeKinectState == "Squatting" || activeKinectState == "Jongkok");
-                        break;
-                    case PostureRequirement.SittingChairOnly:
-                        isConditionValid = (activeKinectState == "Sitting" || activeKinectState == "SittingChair");
-                        break;
-                    case PostureRequirement.SittingFloorOnly:
-                        isConditionValid = (activeKinectState == "SittingFloor");
-                        break;
-                    case PostureRequirement.StandingOnly:
-                        isConditionValid = (activeKinectState == "Standing");
-                        break;
-                    case PostureRequirement.SittingAny:
-                        isConditionValid = (activeKinectState == "Sitting" || activeKinectState == "SittingChair" || activeKinectState == "SittingFloor");
-                        break;
-                }
-            }
-
-            // SCENARIO A: The event hasn't happened yet. Keep counting up.
+            // Skenario A: Event belum aktif, hitung durasi atau langsung tembak jika instantHandTouch / duration <= 0
             if (!zone.eventHasFired)
             {
                 if (isConditionValid)
                 {
-                    zone.conditionTimer += Time.deltaTime;
-
-                    if (zone.conditionTimer >= zone.continuousDurationRequired)
+                    if (zone.instantHandTouch || zone.continuousDurationRequired <= 0.05f)
                     {
                         FireZoneEvent(zone);
+                    }
+                    else
+                    {
+                        zone.conditionTimer += Time.deltaTime;
+
+                        if (zone.conditionTimer >= zone.continuousDurationRequired)
+                        {
+                            FireZoneEvent(zone);
+                        }
                     }
                 }
                 else
@@ -188,7 +172,7 @@ public class KinectTriggerManager : MonoBehaviour
                     zone.conditionTimer = 0f;
                 }
             }
-            // SCENARIO B: Event is active, but user broke their tracking pose ("doing outside the term")
+            // Skenario B: Event sedang aktif, namun user keluar dari syarat postur
             else
             {
                 if (!isConditionValid)
@@ -197,6 +181,46 @@ public class KinectTriggerManager : MonoBehaviour
                 }
             }
         }
+    }
+
+    private bool CheckPostureCondition(PostureRequirement req, PostureType activePlayerPosture, string activeKinectState)
+    {
+        if (req == PostureRequirement.AnyState) return true;
+
+        if (PlayerTungkuTracker.Instance != null)
+        {
+            switch (req)
+            {
+                case PostureRequirement.SquattingOnly:
+                    return (activePlayerPosture == PostureType.Squatting);
+                case PostureRequirement.SittingChairOnly:
+                    return (activePlayerPosture == PostureType.SittingChair);
+                case PostureRequirement.SittingFloorOnly:
+                    return (activePlayerPosture == PostureType.SittingFloor);
+                case PostureRequirement.StandingOnly:
+                    return (activePlayerPosture == PostureType.Standing);
+                case PostureRequirement.SittingAny:
+                    return (activePlayerPosture == PostureType.SittingChair || activePlayerPosture == PostureType.SittingFloor);
+            }
+        }
+        else
+        {
+            switch (req)
+            {
+                case PostureRequirement.SquattingOnly:
+                    return (activeKinectState == "Squatting" || activeKinectState == "Jongkok");
+                case PostureRequirement.SittingChairOnly:
+                    return (activeKinectState == "Sitting" || activeKinectState == "SittingChair");
+                case PostureRequirement.SittingFloorOnly:
+                    return (activeKinectState == "SittingFloor");
+                case PostureRequirement.StandingOnly:
+                    return (activeKinectState == "Standing");
+                case PostureRequirement.SittingAny:
+                    return (activeKinectState == "Sitting" || activeKinectState == "SittingChair" || activeKinectState == "SittingFloor");
+            }
+        }
+
+        return true;
     }
 
     private string GetTriggerLogName(TriggerSetting zone)
@@ -219,38 +243,37 @@ public class KinectTriggerManager : MonoBehaviour
 
         string loggedName = GetTriggerLogName(zone);
 
-        // 1. Alert main logger pipeline to append lines to CSV file
-        if (KinectSessionManager.Instance != null)
+        // 1. Log ke session jika session sedang aktif
+        if (KinectSessionManager.Instance != null && KinectSessionManager.Instance.IsSessionActive)
         {
             KinectSessionManager.Instance.TriggerEntered(loggedName);
         }
 
-        // 2. Display the UI popover message overlay (Global Panel)
+        // 2. Tampilkan panel UI popover global
         if (messagePanel != null)
         {
             messagePanel.SetActive(true);
 
-            // Set Judul Barang
             if (panelTitleField != null)
             {
                 panelTitleField.text = !string.IsNullOrEmpty(zone.namaBarang) ? zone.namaBarang : zone.zoneName;
             }
 
-            // Set Info / Pesan
             if (panelTextField != null)
             {
                 panelTextField.text = zone.inspectorMessage;
             }
         }
 
-        // 3. Audio engine playback initialization
+        // 3. Mainkan Audio SFX
         if (zone.triggerSFX != null && zone.audioSource != null)
         {
-            // Halt any lingering fade-out sequences and reset volume to full capacity
             if (zone.fadeCoroutine != null) StopCoroutine(zone.fadeCoroutine);
             zone.audioSource.volume = 1f;
             zone.audioSource.Play();
         }
+
+        Debug.Log($"<color=#00FFAA>[KinectTriggerManager]</color> <b>TRIGGER TERPICU:</b> {loggedName} | Pesan: '{zone.inspectorMessage}'");
     }
 
     private void CancelActiveZoneEvent(TriggerSetting zone)
@@ -258,7 +281,7 @@ public class KinectTriggerManager : MonoBehaviour
         zone.eventHasFired = false;
         zone.conditionTimer = 0f;
 
-        // 1. Instantly hide UI panels when terms break (or show other still-active zone)
+        // 1. Sembunyikan panel jika tidak ada trigger lain yang aktif
         if (messagePanel != null)
         {
             bool anyOtherActive = false;
@@ -285,19 +308,21 @@ public class KinectTriggerManager : MonoBehaviour
             }
         }
 
-        // 2. Safely communicate exit to master log loops
+        // 2. Kirim sinyal keluar ke session logger
         string loggedName = GetTriggerLogName(zone);
-        if (KinectSessionManager.Instance != null)
+        if (KinectSessionManager.Instance != null && KinectSessionManager.Instance.IsSessionActive)
         {
             KinectSessionManager.Instance.TriggerExited(loggedName);
         }
 
-        // 3. Initialize the asynchronous Audio Fade Out
+        // 3. Fade Out audio
         if (zone.audioSource != null && zone.audioSource.isPlaying)
         {
             if (zone.fadeCoroutine != null) StopCoroutine(zone.fadeCoroutine);
             zone.fadeCoroutine = StartCoroutine(FadeOutAudioChannel(zone));
         }
+
+        Debug.Log($"<color=#FF9900>[KinectTriggerManager]</color> <b>TRIGGER KELUAR/RESET:</b> {loggedName}");
     }
 
     private IEnumerator FadeOutAudioChannel(TriggerSetting zone)
@@ -310,31 +335,39 @@ public class KinectTriggerManager : MonoBehaviour
         while (elapsed < duration)
         {
             elapsed += Time.deltaTime;
-            // Linearly interpolate current volume towards absolute zero over time
             source.volume = Mathf.Lerp(startVolume, 0f, elapsed / duration);
             yield return null;
         }
 
         source.Stop();
-        source.volume = 1f; // Reset default structural volume back to max for its next trigger lifecycle
+        source.volume = 1f;
     }
 
     public void ProcessProxyEnter(TriggerSetting zone, Collider other)
     {
+        if (zone == null) return;
+        if (zone.occupants == null) zone.occupants = new HashSet<Collider>();
+
         if (IsValidUser(other))
         {
+            if (other != null) zone.occupants.Add(other);
             zone.isUserInside = true;
-            zone.conditionTimer = 0f;
+            Debug.Log($"<color=#00FFAA>[KinectTriggerManager]</color> Collider masuk zona <b>{zone.zoneName}</b> ({zone.namaBarang}): '{(other != null ? other.name : "Unknown")}' (Total penghuni: {zone.occupants.Count})");
         }
     }
 
     public void ProcessProxyExit(TriggerSetting zone, Collider other)
     {
-        if (IsValidUser(other))
+        if (zone == null) return;
+        if (zone.occupants == null) zone.occupants = new HashSet<Collider>();
+
+        if (other != null) zone.occupants.Remove(other);
+
+        // Hanya batalkan jika semua collider pengguna telah meninggalkan zona
+        if (zone.occupants.Count == 0)
         {
             zone.isUserInside = false;
 
-            // If they completely walk outside the bounds while the event is running, drop it and fade audio
             if (zone.eventHasFired)
             {
                 CancelActiveZoneEvent(zone);
@@ -343,12 +376,30 @@ public class KinectTriggerManager : MonoBehaviour
             {
                 zone.conditionTimer = 0f;
             }
+            Debug.Log($"<color=#FF9900>[KinectTriggerManager]</color> Pengguna telah meninggalkan zona <b>{zone.zoneName}</b> ({zone.namaBarang})");
         }
     }
 
-    private bool IsValidUser(Collider other)
+    public bool IsValidUser(Collider other)
     {
-        return other.CompareTag("Player") || other.name.Contains("Joint") || other.name.Contains("Avatar") || (other.transform.root != null && other.transform.root.CompareTag("Player"));
+        if (other == null) return false;
+
+        // 1. Tag checks
+        if (other.CompareTag("Player") || (other.transform.root != null && other.transform.root.CompareTag("Player")))
+            return true;
+
+        // 2. Name checks (Hand, Tangan, Joint, Avatar)
+        string n = other.name.ToLowerInvariant();
+        if (n.Contains("hand") || n.Contains("tangan") || n.Contains("joint") || n.Contains("avatar") || n.Contains("player"))
+            return true;
+
+        // 3. Script / Component hierarchy checks
+        if (other.GetComponentInParent<PlayerHandColliderSetup>() != null ||
+            other.GetComponentInParent<AvatarController>() != null ||
+            other.GetComponent<HandTriggerReporter>() != null)
+            return true;
+
+        return false;
     }
 }
 
@@ -375,6 +426,28 @@ public class TriggerZoneProxy : MonoBehaviour
     }
 
     void OnTriggerExit(Collider other)
+    {
+        if (manager != null && structuralZoneSettings != null)
+        {
+            manager.ProcessProxyExit(structuralZoneSettings, other);
+        }
+    }
+
+    /// <summary>
+    /// Dipanggil langsung oleh PlayerHandColliderSetup (Overlap scan) agar tidak bergantung pada PhysX event semata.
+    /// </summary>
+    public void OnTriggerEnterExternal(Collider other, string sourceName)
+    {
+        if (manager != null && structuralZoneSettings != null)
+        {
+            manager.ProcessProxyEnter(structuralZoneSettings, other);
+        }
+    }
+
+    /// <summary>
+    /// Dipanggil langsung oleh PlayerHandColliderSetup saat tangan keluar dari zona.
+    /// </summary>
+    public void OnTriggerExitExternal(Collider other, string sourceName)
     {
         if (manager != null && structuralZoneSettings != null)
         {
