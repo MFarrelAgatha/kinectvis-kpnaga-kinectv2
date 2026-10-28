@@ -4,10 +4,12 @@ using TMPro;
 
 public enum PostureType
 {
-    Standing,        // Berdiri
-    SittingChair,    // Duduk Kursi
-    SittingFloor,    // Duduk Selonjoran
-    Squatting        // Jongkok
+    Standing,            // Berdiri
+    Squatting,           // Jongkok
+    Kneeling,            // Berlutut
+    SittingCrossLegged,  // Duduk Sila
+    SittingEmok,         // Duduk Emok
+    SittingChair         // Duduk Normal
 }
 
 public class PlayerTungkuTracker : MonoBehaviour
@@ -74,16 +76,33 @@ public class PlayerTungkuTracker : MonoBehaviour
     [Tooltip("Ubah semua teks font yang ada di dalam panel (termasuk label judul jika ada)?")]
     public bool changeAllFontsInPanel = true;
 
+    [Header("Pengaturan Warna Background Panel per Postur (Saat Terdeteksi)")]
     [Tooltip("Warna background panel saat aktif JONGKOK (Default: Biru Tua).")]
-    public Color colorPanelNyala = new Color(0f, 0.055f, 0.70f, 0.88f);
+    public Color colorJongkok = new Color(0f, 0.055f, 0.70f, 0.88f); // Biru Tua
 
-    [Tooltip("Warna background panel saat posisi DUDUK di kursi (Default: Cyan / Biru Muda).")]
-    public Color colorPanelDuduk = new Color(0.0f, 0.55f, 0.88f, 0.88f);
+    [Tooltip("Warna background panel saat aktif BERLUTUT (Default: Cyan / Biru Langit).")]
+    public Color colorBerlutut = new Color(0.0f, 0.68f, 0.94f, 0.88f); // Cyan / Biru Langit
 
-    [Tooltip("Warna background panel saat mati / BERDIRI / tidak terdeteksi (Default: Merah).")]
-    public Color colorPanelMati = new Color(0.72f, 0.08f, 0.08f, 0.88f);
+    [Tooltip("Warna background panel saat aktif DUDUK SILA (Default: Ungu / Violet).")]
+    public Color colorDudukSila = new Color(0.55f, 0.18f, 0.79f, 0.88f); // Ungu / Violet
 
-    [Tooltip("Warna font saat aktif / jongkok (Default: Putih).")]
+    [Tooltip("Warna background panel saat aktif DUDUK EMOK (Default: Pink / Magenta).")]
+    public Color colorDudukEmok = new Color(0.90f, 0.22f, 0.53f, 0.88f); // Pink / Magenta
+
+    [Tooltip("Warna background panel saat aktif DUDUK NORMAL (Default: Oranye).")]
+    [UnityEngine.Serialization.FormerlySerializedAs("colorDudukKursi")]
+    public Color colorDudukNormal = new Color(0.92f, 0.48f, 0.10f, 0.88f); // Oranye
+    public Color colorDudukKursi { get => colorDudukNormal; set => colorDudukNormal = value; }
+
+    [Tooltip("Warna background panel saat BERDIRI / Netral (Default: Merah Tua).")]
+    public Color colorBerdiri = new Color(0.72f, 0.08f, 0.08f, 0.88f); // Merah
+
+    // Backward-compatibility properties
+    public Color colorPanelNyala { get => colorJongkok; set => colorJongkok = value; }
+    public Color colorPanelDuduk { get => colorDudukNormal; set => colorDudukNormal = value; }
+    public Color colorPanelMati { get => colorBerdiri; set => colorBerdiri = value; }
+
+    [Tooltip("Warna font saat aktif / terdeteksi (Default: Putih).")]
     public Color colorFontNyala = Color.white;
 
     [Tooltip("Warna font saat mati / berdiri (Default: Abu-abu).")]
@@ -139,7 +158,7 @@ public class PlayerTungkuTracker : MonoBehaviour
     [Tooltip("Kecepatan lerp penghalusan penempelan ke lantai. Isi 0 untuk langsung menempel seketika (snap instant).")]
     public float groundSmoothing = 0f;
 
-    [Header("Deteksi Postur Fisik (Jongkok vs Duduk Kursi vs Selonjoran vs Berdiri)")]
+    [Header("Deteksi Postur Fisik (Jongkok vs Duduk Normal vs Selonjoran vs Berdiri)")]
     [Tooltip("Gunakan deteksi fisik postur berdasarkan ketinggian pinggul (Hips), sudut lutut, dan posisi kaki avatar di Unity.")]
     public bool enablePhysicalSquatDetection = true;
 
@@ -147,11 +166,27 @@ public class PlayerTungkuTracker : MonoBehaviour
     [Range(0.2f, 0.7f)]
     public float squatHipsHeightThreshold = 0.55f;
 
-    [Tooltip("Batas tinggi pinggul di lantai (meter) untuk DUDUK SELONJORAN (Default: 0.38m).")]
+    [Tooltip("Batas tinggi pinggul di lantai (meter) untuk DUDUK (Default: 0.38m).")]
     [Range(0.15f, 0.5f)]
     public float floorSittingHipThreshold = 0.38f;
 
-    [Tooltip("Batas tinggi pinggul (Hips) dari lantai (meter) untuk DUDUK KURSI (Default: 0.78m).")]
+    [Tooltip("Batas tinggi lutut ke lantai (meter) untuk BERLUTUT (Default: 0.18m).")]
+    [Range(0.05f, 0.35f)]
+    public float kneelingKneeHeightThreshold = 0.18f;
+
+    [Tooltip("Batas tinggi pinggul ke lantai (meter) untuk BERLUTUT (Default: 0.50m).")]
+    [Range(0.20f, 0.65f)]
+    public float kneelingHipHeightThreshold = 0.50f;
+
+    [Tooltip("Batas minimal lebar sebaran kedua lutut (meter) untuk DUDUK SILA (Default: 0.52m).")]
+    [Range(0.35f, 0.90f)]
+    public float sittingCrossLeggedKneeSpreadThreshold = 0.52f;
+
+    [Tooltip("Batas minimal asimetri pergelangan kaki (meter) untuk DUDUK EMOK (Default: 0.12m).")]
+    [Range(0.06f, 0.40f)]
+    public float sittingEmokAnkleAsymmetryThreshold = 0.12f;
+
+    [Tooltip("Batas tinggi pinggul (Hips) dari lantai (meter) untuk DUDUK NORMAL (Default: 0.78m).")]
     [Range(0.5f, 0.95f)]
     public float sitHipsHeightThreshold = 0.78f;
 
@@ -171,7 +206,7 @@ public class PlayerTungkuTracker : MonoBehaviour
     [Range(30f, 90f)]
     public float squatKneeAngleThreshold = 75f;
 
-    [Tooltip("Batas sudut tekukan lutut (derajat) untuk DUDUK KURSI (Default: 130°).")]
+    [Tooltip("Batas sudut tekukan lutut (derajat) untuk DUDUK NORMAL (Default: 130°).")]
     [Range(70f, 150f)]
     public float sitKneeAngleThreshold = 130f;
 
@@ -191,6 +226,30 @@ public class PlayerTungkuTracker : MonoBehaviour
     [SerializeField] private float liveGroundHitY = 0f;
     [SerializeField] private Vector3 liveLowestFootPos = Vector3.zero;
     [SerializeField] private PostureType currentPostureType = PostureType.Standing;
+
+    [Header("Status Deteksi Boolean (Realtime Checkbox)")]
+    [Tooltip("Apakah player terdeteksi BERDIRI?")]
+    public bool isStanding = true;
+    [Tooltip("Apakah player terdeteksi JONGKOK?")]
+    public bool isSquatting = false;
+    [Tooltip("Apakah player terdeteksi BERLUTUT?")]
+    public bool isKneeling = false;
+    [Tooltip("Apakah player terdeteksi DUDUK SILA?")]
+    public bool isSittingCrossLegged = false;
+    [Tooltip("Apakah player terdeteksi DUDUK EMOK?")]
+    public bool isSittingEmok = false;
+    [Tooltip("Apakah player terdeteksi DUDUK NORMAL?")]
+    public bool isSittingChair = false;
+    public bool isSittingNormal => isSittingChair;
+
+    // Public Getters
+    public bool IsStanding => isStanding;
+    public bool IsSquatting => isSquatting;
+    public bool IsKneeling => isKneeling;
+    public bool IsSittingCrossLegged => isSittingCrossLegged;
+    public bool IsSittingEmok => isSittingEmok;
+    public bool IsSittingChair => isSittingChair;
+    public bool IsSittingNormal => isSittingChair;
 
     [Header("Live Data / Inspector Monitor")]
     [SerializeField] private bool isJongkok = false;
@@ -232,9 +291,29 @@ public class PlayerTungkuTracker : MonoBehaviour
         switch (currentPostureType)
         {
             case PostureType.Squatting: return "Jongkok";
-            case PostureType.SittingChair: return "Duduk Kursi";
-            case PostureType.SittingFloor: return "Duduk Selonjoran";
+            case PostureType.Kneeling: return "Berlutut";
+            case PostureType.SittingCrossLegged: return "Duduk Sila";
+            case PostureType.SittingEmok: return "Duduk Emok";
+            case PostureType.SittingChair: return "Duduk Normal";
             default: return "Berdiri";
+        }
+    }
+
+    public Color GetCurrentPostureColor()
+    {
+        return GetPostureColor(currentPostureType);
+    }
+
+    public Color GetPostureColor(PostureType posture)
+    {
+        switch (posture)
+        {
+            case PostureType.Squatting: return colorJongkok;
+            case PostureType.Kneeling: return colorBerlutut;
+            case PostureType.SittingCrossLegged: return colorDudukSila;
+            case PostureType.SittingEmok: return colorDudukEmok;
+            case PostureType.SittingChair: return colorDudukNormal;
+            default: return colorBerdiri;
         }
     }
 
@@ -595,23 +674,49 @@ public class PlayerTungkuTracker : MonoBehaviour
             float rightKneeAngle = CalculateKneeAngle(boneHips, boneRightKnee, boneRightFoot);
             liveKneeAngle = Mathf.Min(leftKneeAngle, rightKneeAngle);
 
-            // 1. Kriteria: DUDUK SELONJORAN (SittingFloor)
-            // Karakteristik: Pinggul menempel di lantai (< floorSittingHipThreshold ~0.38m)
-            // DAN kaki menjulur ke depan (jarak horizontal XZ >= minSelonjoranHorizontalDist ~0.50m ATAU lutut lurus > 115° ATAU hipToFootDistance > squatLegDistanceThreshold)
-            bool isFloorSitting = (liveHipHeightToGround > 0f && liveHipHeightToGround < floorSittingHipThreshold)
-                && (liveHorizontalHipToFoot >= minSelonjoranHorizontalDist || liveKneeAngle > 115f || liveHipToFootDistance > squatLegDistanceThreshold);
+            // Hitung ketinggian lutut dari lantai
+            float leftKneeH = (boneLeftKnee != null) ? Mathf.Max(0f, boneLeftKnee.position.y - floorYUnderHip) : liveHipHeightToGround * 0.5f;
+            float rightKneeH = (boneRightKnee != null) ? Mathf.Max(0f, boneRightKnee.position.y - floorYUnderHip) : liveHipHeightToGround * 0.5f;
+            float lowestKneeHeight = Mathf.Min(leftKneeH, rightKneeH);
 
-            // 2. Kriteria: JONGKOK (Squatting)
-            // Karakteristik: Pinggul rendah (< squatHipsHeightThreshold ~0.55m), lutut terlipat tajam (< squatKneeAngleThreshold ~75°),
-            // dan kaki terlipat rapat di bawah/dekat pinggul (horizontal dist < maxSquatHorizontalDist ~0.42m)
-            bool isSquatting = !isFloorSitting
+            // Hitung sebaran kedua lutut (Knee Spread)
+            float kneeSpread = (boneLeftKnee != null && boneRightKnee != null)
+                ? Vector2.Distance(new Vector2(boneLeftKnee.position.x, boneLeftKnee.position.z), new Vector2(boneRightKnee.position.x, boneRightKnee.position.z))
+                : 0.35f;
+
+            // Hitung asimetri pergelangan kaki / telapak kaki relatif terhadap panggul
+            float ankleAsymmetry = 0f;
+            if (boneLeftFoot != null && boneRightFoot != null)
+            {
+                Vector3 hipRight = boneHips.right;
+                float leftFootSide = Vector3.Dot(boneLeftFoot.position - boneHips.position, hipRight);
+                float rightFootSide = Vector3.Dot(boneRightFoot.position - boneHips.position, hipRight);
+                ankleAsymmetry = Mathf.Abs((leftFootSide + rightFootSide) * 0.5f);
+            }
+
+            // 1. Kriteria: BERLUTUT (Kneeling)
+            bool isKneeling = (lowestKneeHeight < kneelingKneeHeightThreshold)
+                && (liveHipHeightToGround > 0.20f && liveHipHeightToGround < kneelingHipHeightThreshold);
+
+            // 2. Kriteria: DUDUK SILA (SittingCrossLegged)
+            bool isSila = !isKneeling
+                && (liveHipHeightToGround > 0f && liveHipHeightToGround < floorSittingHipThreshold)
+                && (kneeSpread >= sittingCrossLeggedKneeSpreadThreshold);
+
+            // 3. Kriteria: DUDUK EMOK (SittingEmok)
+            bool isEmok = !isKneeling && !isSila
+                && (liveHipHeightToGround > 0f && liveHipHeightToGround < floorSittingHipThreshold)
+                && (ankleAsymmetry >= sittingEmokAnkleAsymmetryThreshold);
+
+            // 4. Kriteria: JONGKOK (Squatting)
+            bool isSquatting = !isKneeling && !isSila && !isEmok
                 && (liveHipHeightToGround > 0f && liveHipHeightToGround < squatHipsHeightThreshold)
+                && (lowestKneeHeight > 0.14f)
                 && (liveHorizontalHipToFoot < maxSquatHorizontalDist)
                 && (liveKneeAngle < squatKneeAngleThreshold || liveHipToFootDistance < squatLegDistanceThreshold);
 
-            // 3. Kriteria: DUDUK KURSI (SittingChair)
-            // Karakteristik: Pinggul di rentang kursi (< sitHipsHeightThreshold ~0.78m) dan lutut tertekuk wajar (< sitKneeAngleThreshold ~130°)
-            bool isChairSitting = !isFloorSitting && !isSquatting
+            // 5. Kriteria: DUDUK NORMAL (SittingChair)
+            bool isChairSitting = !isKneeling && !isSila && !isEmok && !isSquatting
                 && (liveHipHeightToGround > 0f && liveHipHeightToGround < sitHipsHeightThreshold)
                 && (liveKneeAngle < sitKneeAngleThreshold);
 
@@ -622,10 +727,22 @@ public class PlayerTungkuTracker : MonoBehaviour
                 currentPosture = "Squatting";
                 isJongkok = true;
             }
-            else if (isFloorSitting)
+            else if (isKneeling)
             {
-                currentPostureType = PostureType.SittingFloor;
-                currentPosture = "SittingFloor";
+                currentPostureType = PostureType.Kneeling;
+                currentPosture = "Kneeling";
+                isJongkok = false;
+            }
+            else if (isSila)
+            {
+                currentPostureType = PostureType.SittingCrossLegged;
+                currentPosture = "SittingCrossLegged";
+                isJongkok = false;
+            }
+            else if (isEmok)
+            {
+                currentPostureType = PostureType.SittingEmok;
+                currentPosture = "SittingEmok";
                 isJongkok = false;
             }
             else if (isChairSitting)
@@ -653,16 +770,28 @@ public class PlayerTungkuTracker : MonoBehaviour
                     currentPosture = "Squatting";
                     isJongkok = true;
                 }
-                else if (s == "SittingChair" || s == "Sitting")
+                else if (s == "Kneeling" || s == "Berlutut")
+                {
+                    currentPostureType = PostureType.Kneeling;
+                    currentPosture = "Kneeling";
+                    isJongkok = false;
+                }
+                else if (s == "SittingCrossLegged" || s == "Duduk Sila")
+                {
+                    currentPostureType = PostureType.SittingCrossLegged;
+                    currentPosture = "SittingCrossLegged";
+                    isJongkok = false;
+                }
+                else if (s == "SittingEmok" || s == "Duduk Emok")
+                {
+                    currentPostureType = PostureType.SittingEmok;
+                    currentPosture = "SittingEmok";
+                    isJongkok = false;
+                }
+                else if (s == "SittingChair" || s == "Sitting" || s == "Duduk Kursi" || s == "Duduk Normal")
                 {
                     currentPostureType = PostureType.SittingChair;
                     currentPosture = "SittingChair";
-                    isJongkok = false;
-                }
-                else if (s == "SittingFloor")
-                {
-                    currentPostureType = PostureType.SittingFloor;
-                    currentPosture = "SittingFloor";
                     isJongkok = false;
                 }
                 else
@@ -679,6 +808,15 @@ public class PlayerTungkuTracker : MonoBehaviour
                 isJongkok = false;
             }
         }
+
+        // Update Boolean status flags
+        isStanding = (currentPostureType == PostureType.Standing);
+        isSquatting = (currentPostureType == PostureType.Squatting);
+        isKneeling = (currentPostureType == PostureType.Kneeling);
+        isSittingCrossLegged = (currentPostureType == PostureType.SittingCrossLegged);
+        isSittingEmok = (currentPostureType == PostureType.SittingEmok);
+        isSittingChair = (currentPostureType == PostureType.SittingChair);
+        isJongkok = isSquatting;
 
         // 3. Sinkronkan ke KinectSessionManager
         if (syncWithKinectSessionManager && KinectSessionManager.Instance != null && Application.isPlaying)
@@ -707,10 +845,14 @@ public class PlayerTungkuTracker : MonoBehaviour
         {
             if (currentPostureType == PostureType.Squatting)
                 Gizmos.color = Color.yellow;
+            else if (currentPostureType == PostureType.Kneeling)
+                Gizmos.color = new Color(0.2f, 0.65f, 0.95f); // Biru muda
+            else if (currentPostureType == PostureType.SittingCrossLegged)
+                Gizmos.color = new Color(0.6f, 0.35f, 0.95f); // Ungu
+            else if (currentPostureType == PostureType.SittingEmok)
+                Gizmos.color = new Color(0.95f, 0.35f, 0.65f); // Pink/Magenta
             else if (currentPostureType == PostureType.SittingChair)
                 Gizmos.color = new Color(0f, 0.75f, 1f); // Cyan
-            else if (currentPostureType == PostureType.SittingFloor)
-                Gizmos.color = new Color(1f, 0.5f, 0f); // Orange
             else
                 Gizmos.color = new Color(0.3f, 0.85f, 0.3f); // Hijau (Standing)
 
@@ -918,17 +1060,15 @@ public class PlayerTungkuTracker : MonoBehaviour
             if (panelPosisiArahPlayer != null && !panelPosisiArahPlayer.activeSelf)
                 panelPosisiArahPlayer.SetActive(true);
 
-            // Hanya JONGKOK yang relevan untuk tracking tungku:
-            // Panel jadi BIRU hanya jika Jongkok! Jika selain jongkok (Duduk Kursi, Duduk Selonjoran, Berdiri), panel MERAH.
-            bool isBiru = (currentPostureType == PostureType.Squatting);
+            // Update Warna Panel dan Font sesuai warna khas masing-masing postur
+            Color targetPanelColor = GetCurrentPostureColor();
+            bool isActionActive = (currentPostureType != PostureType.Standing);
 
-            // Update Warna Panel dan Font (Jika !isBiru, otomatis kembali ke MERAH dan font ABU)
-            ApplyPanelColorState(panelInfoPosisiJongkok, imageInfoPosisiJongkok, textInfoPosisiJongkok, isBiru, colorPanelNyala);
-            ApplyPanelColorState(panelCounterJongkok, imageCounterJongkok, textCounterJongkok, isBiru, colorPanelNyala);
-            ApplyPanelColorState(panelJarakTungkuJongkok, imageJarakTungkuJongkok, textJarakTungkuJongkok, isBiru, colorPanelNyala);
+            ApplyPanelColorState(panelInfoPosisiJongkok, imageInfoPosisiJongkok, textInfoPosisiJongkok, isActionActive, targetPanelColor);
+            ApplyPanelColorState(panelCounterJongkok, imageCounterJongkok, textCounterJongkok, isActionActive, targetPanelColor);
+            ApplyPanelColorState(panelJarakTungkuJongkok, imageJarakTungkuJongkok, textJarakTungkuJongkok, isActionActive, targetPanelColor);
 
-            // Update Teks Label Posisi di panel:
-            // Selalu tampilkan label postur yang aktif: Jongkok, Duduk Kursi, Duduk Selonjoran, atau Berdiri!
+            // Update Teks Label Posisi di panel
             if (textInfoPosisiJongkok != null)
             {
                 string label = GetPostureLabelIndonesian();
@@ -937,14 +1077,14 @@ public class PlayerTungkuTracker : MonoBehaviour
 
             if (textCounterJongkok != null)
             {
-                textCounterJongkok.text = isBiru
+                textCounterJongkok.text = isActionActive
                     ? formattedDuration
                     : textCounterMati;
             }
 
             if (textJarakTungkuJongkok != null)
             {
-                textJarakTungkuJongkok.text = isBiru
+                textJarakTungkuJongkok.text = isActionActive
                     ? (tungkuTransform != null ? $"{currentDistance:F2} m" : "-")
                     : textJarakMati;
             }
@@ -1147,7 +1287,7 @@ public class PlayerTungkuTracker : MonoBehaviour
     /// <summary>
     /// Preview tampilan status Nyala (Biru / Cyan) atau Mati (Merah + Font Abu) langsung di Editor.
     /// <summary>
-    /// Preview tampilan status postur (Jongkok = Biru, Duduk Kursi / Selonjoran / Berdiri = Merah) langsung di Editor.
+    /// Preview tampilan status postur (Jongkok = Biru, Duduk Normal / Selonjoran / Berdiri = Merah) langsung di Editor.
     /// </summary>
     public void PreviewPostureInEditor(PostureType type)
     {
@@ -1622,27 +1762,43 @@ public class PlayerTungkuTrackerEditor : UnityEditor.Editor
         
         GUILayout.BeginHorizontal();
         GUI.backgroundColor = new Color(0.15f, 0.45f, 0.95f);
-        if (GUILayout.Button("Preview JONGKOK\n(Biru - Relevan)", GUILayout.Height(38)))
+        if (GUILayout.Button("Preview JONGKOK\n(Biru)", GUILayout.Height(34)))
         {
             tracker.PreviewPostureInEditor(PostureType.Squatting);
             UnityEditor.EditorUtility.SetDirty(tracker);
         }
-        GUI.backgroundColor = new Color(0.95f, 0.35f, 0.35f);
-        if (GUILayout.Button("Preview DUDUK KURSI\n(Merah + Abu)", GUILayout.Height(38)))
+        GUI.backgroundColor = new Color(0.2f, 0.65f, 0.95f);
+        if (GUILayout.Button("Preview BERLUTUT", GUILayout.Height(34)))
         {
-            tracker.PreviewPostureInEditor(PostureType.SittingChair);
+            tracker.PreviewPostureInEditor(PostureType.Kneeling);
             UnityEditor.EditorUtility.SetDirty(tracker);
         }
         GUILayout.EndHorizontal();
 
         GUILayout.BeginHorizontal();
-        GUI.backgroundColor = new Color(0.95f, 0.35f, 0.35f);
-        if (GUILayout.Button("Preview SELONJORAN\n(Merah + Abu)", GUILayout.Height(38)))
+        GUI.backgroundColor = new Color(0.6f, 0.4f, 0.95f);
+        if (GUILayout.Button("Preview DUDUK SILA", GUILayout.Height(34)))
         {
-            tracker.PreviewPostureInEditor(PostureType.SittingFloor);
+            tracker.PreviewPostureInEditor(PostureType.SittingCrossLegged);
             UnityEditor.EditorUtility.SetDirty(tracker);
         }
-        if (GUILayout.Button("Preview BERDIRI\n(Merah + Abu)", GUILayout.Height(38)))
+        GUI.backgroundColor = new Color(0.95f, 0.35f, 0.65f);
+        if (GUILayout.Button("Preview DUDUK EMOK", GUILayout.Height(34)))
+        {
+            tracker.PreviewPostureInEditor(PostureType.SittingEmok);
+            UnityEditor.EditorUtility.SetDirty(tracker);
+        }
+        GUILayout.EndHorizontal();
+
+        GUILayout.BeginHorizontal();
+        GUI.backgroundColor = new Color(0.35f, 0.7f, 0.85f);
+        if (GUILayout.Button("Preview DUDUK NORMAL", GUILayout.Height(34)))
+        {
+            tracker.PreviewPostureInEditor(PostureType.SittingChair);
+            UnityEditor.EditorUtility.SetDirty(tracker);
+        }
+        GUI.backgroundColor = new Color(0.95f, 0.35f, 0.35f);
+        if (GUILayout.Button("Preview BERDIRI", GUILayout.Height(34)))
         {
             tracker.PreviewPostureInEditor(PostureType.Standing);
             UnityEditor.EditorUtility.SetDirty(tracker);

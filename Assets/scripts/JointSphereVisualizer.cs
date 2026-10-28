@@ -64,6 +64,11 @@ public class JointSphereVisualizer : MonoBehaviour
     private bool lastShowLines = true;
     private bool lastShowSpheres = true;
 
+    private void OnEnable()
+    {
+        UpdateVisualizerImmediate();
+    }
+
     private void Start()
     {
         if (disableOriginalMeshes)
@@ -81,6 +86,11 @@ public class JointSphereVisualizer : MonoBehaviour
     }
 
     private void LateUpdate()
+    {
+        UpdateVisualizerImmediate();
+    }
+
+    public void UpdateVisualizerImmediate()
     {
         // 1. Tangani toggle Show/Hide Spheres
         if (lastShowSpheres != showJointSpheres)

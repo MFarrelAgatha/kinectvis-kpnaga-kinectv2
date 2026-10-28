@@ -657,7 +657,7 @@ public class KinectSessionManager : MonoBehaviour
             currentState = PlayerTungkuTracker.Instance.Posture;
             if (postureStatusText != null)
             {
-                bool isSittingOrSquatting = (currentState == "Sitting" || currentState == "Squatting");
+                bool isSittingOrSquatting = (currentState != "Standing" && currentState != "Unknown");
                 postureStatusText.text = $"STATE: {currentState.ToUpper()} (Tracker Synced)\n" +
                                          $"Hip Height: {PlayerTungkuTracker.Instance.HipHeightToGround:F2}m | Knee: {PlayerTungkuTracker.Instance.KneeAngle:F0}°";
                 postureStatusText.color = isSittingOrSquatting ? new Color(0.2f, 0.8f, 1f) : new Color(1f, 0.6f, 0f);

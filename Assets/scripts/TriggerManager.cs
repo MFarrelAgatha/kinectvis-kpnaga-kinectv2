@@ -7,12 +7,14 @@ public class KinectTriggerManager : MonoBehaviour
 {
     public enum PostureRequirement
     {
-        AnyState = 0,          // Bebas / Semua Postur
-        SquattingOnly = 1,     // Khusus Jongkok
-        SittingChairOnly = 2,  // Khusus Duduk Kursi
-        SittingFloorOnly = 3,  // Khusus Duduk Selonjoran
-        StandingOnly = 4,      // Khusus Berdiri
-        SittingAny = 5         // Duduk Apa Saja (Kursi / Selonjoran)
+        AnyState = 0,               // Bebas / Semua Postur
+        SquattingOnly = 1,          // Khusus Jongkok
+        KneelingOnly = 2,           // Khusus Berlutut
+        SittingCrossLeggedOnly = 3, // Khusus Duduk Sila
+        SittingEmokOnly = 4,        // Khusus Duduk Emok
+        SittingChairOnly = 5,       // Khusus Duduk Normal
+        StandingOnly = 6,           // Khusus Berdiri
+        SittingAny = 7              // Duduk Apa Saja (Sila / Emok / Normal)
     }
 
     public enum PanelPlacement
@@ -332,14 +334,18 @@ public class KinectTriggerManager : MonoBehaviour
             {
                 case PostureRequirement.SquattingOnly:
                     return (activePlayerPosture == PostureType.Squatting);
+                case PostureRequirement.KneelingOnly:
+                    return (activePlayerPosture == PostureType.Kneeling);
+                case PostureRequirement.SittingCrossLeggedOnly:
+                    return (activePlayerPosture == PostureType.SittingCrossLegged);
+                case PostureRequirement.SittingEmokOnly:
+                    return (activePlayerPosture == PostureType.SittingEmok);
                 case PostureRequirement.SittingChairOnly:
                     return (activePlayerPosture == PostureType.SittingChair);
-                case PostureRequirement.SittingFloorOnly:
-                    return (activePlayerPosture == PostureType.SittingFloor);
                 case PostureRequirement.StandingOnly:
                     return (activePlayerPosture == PostureType.Standing);
                 case PostureRequirement.SittingAny:
-                    return (activePlayerPosture == PostureType.SittingChair || activePlayerPosture == PostureType.SittingFloor);
+                    return (activePlayerPosture == PostureType.SittingChair || activePlayerPosture == PostureType.SittingCrossLegged || activePlayerPosture == PostureType.SittingEmok);
             }
         }
         else
@@ -348,14 +354,18 @@ public class KinectTriggerManager : MonoBehaviour
             {
                 case PostureRequirement.SquattingOnly:
                     return (activeKinectState == "Squatting" || activeKinectState == "Jongkok");
+                case PostureRequirement.KneelingOnly:
+                    return (activeKinectState == "Kneeling" || activeKinectState == "Berlutut");
+                case PostureRequirement.SittingCrossLeggedOnly:
+                    return (activeKinectState == "SittingCrossLegged" || activeKinectState == "Duduk Sila");
+                case PostureRequirement.SittingEmokOnly:
+                    return (activeKinectState == "SittingEmok" || activeKinectState == "Duduk Emok");
                 case PostureRequirement.SittingChairOnly:
-                    return (activeKinectState == "Sitting" || activeKinectState == "SittingChair");
-                case PostureRequirement.SittingFloorOnly:
-                    return (activeKinectState == "SittingFloor");
+                    return (activeKinectState == "Sitting" || activeKinectState == "SittingChair" || activeKinectState == "Duduk Kursi" || activeKinectState == "Duduk Normal");
                 case PostureRequirement.StandingOnly:
-                    return (activeKinectState == "Standing");
+                    return (activeKinectState == "Standing" || activeKinectState == "Berdiri");
                 case PostureRequirement.SittingAny:
-                    return (activeKinectState == "Sitting" || activeKinectState == "SittingChair" || activeKinectState == "SittingFloor");
+                    return (activeKinectState == "Sitting" || activeKinectState == "SittingChair" || activeKinectState == "SittingCrossLegged" || activeKinectState == "SittingEmok" || activeKinectState == "Duduk Sila" || activeKinectState == "Duduk Emok" || activeKinectState == "Duduk Normal");
             }
         }
 
