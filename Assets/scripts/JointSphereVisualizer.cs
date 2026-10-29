@@ -92,6 +92,36 @@ public class JointSphereVisualizer : MonoBehaviour
 
     public void UpdateVisualizerImmediate()
     {
+        // 0. Jika user memutar/menggeser bola VisJoint_ secara langsung di Scene View,
+        // teruskan perubahan rotasi tersebut ke bone induknya agar sendi ikut berputar!
+        if (generatedSpheres != null && generatedSpheres.Count > 0)
+        {
+            for (int i = 0; i < generatedSpheres.Count; i++)
+            {
+                GameObject sphere = generatedSpheres[i];
+                if (sphere == null) continue;
+                Transform st = sphere.transform;
+                Transform parentBone = st.parent;
+                if (parentBone == null) continue;
+
+                if (Quaternion.Angle(st.localRotation, Quaternion.identity) > 0.001f)
+                {
+                    parentBone.localRotation = parentBone.localRotation * st.localRotation;
+                    st.localRotation = Quaternion.identity;
+                }
+
+                if (st.localPosition.sqrMagnitude > 0.000001f)
+                {
+                    string pName = parentBone.name.ToLowerInvariant();
+                    if (pName.Contains("pelvis") || pName.Equals("hips") || pName.Contains("hipmaster"))
+                    {
+                        parentBone.position += (st.position - parentBone.position);
+                    }
+                    st.localPosition = Vector3.zero;
+                }
+            }
+        }
+
         // 1. Tangani toggle Show/Hide Spheres
         if (lastShowSpheres != showJointSpheres)
         {

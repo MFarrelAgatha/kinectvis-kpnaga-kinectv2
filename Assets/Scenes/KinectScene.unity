@@ -1297,8 +1297,8 @@ LineRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_Positions:
-  - {x: 0.000000015365785, y: 0.4725482, z: 16.748535}
-  - {x: 0.03653293, y: 0.6962507, z: 16.784634}
+  - {x: 0.000000015365785, y: 0.95254815, z: 16.748535}
+  - {x: 0.03653293, y: 1.1762507, z: 16.784634}
   m_Parameters:
     serializedVersion: 3
     widthMultiplier: 1
@@ -1779,8 +1779,8 @@ Transform:
   m_GameObject: {fileID: 119414583}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 1.418, y: 2.2631, z: -1.7903}
-  m_LocalScale: {x: 1.0541037, y: 0.4072052, z: 1.3875189}
+  m_LocalPosition: {x: 1.3191, y: 2.0505, z: -1.7903}
+  m_LocalScale: {x: 1.2519591, y: 0.83236814, z: 1.3875189}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 929248811}
@@ -3837,8 +3837,8 @@ LineRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_Positions:
-  - {x: -0.10948235, y: 0.16579023, z: 16.565962}
-  - {x: -0.2307239, y: 0.10132542, z: 16.489744}
+  - {x: 0.06835168, y: 0.30782008, z: 16.332945}
+  - {x: 0.06894686, y: 0.23073173, z: 16.196117}
   m_Parameters:
     serializedVersion: 3
     widthMultiplier: 1
@@ -4355,8 +4355,8 @@ LineRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_Positions:
-  - {x: 0.0000000144344625, y: 0.35558206, z: 16.757502}
-  - {x: -0.0683514, y: 0.27050036, z: 16.769876}
+  - {x: 0.0000000144344625, y: 0.835582, z: 16.757502}
+  - {x: -0.0683514, y: 0.7505003, z: 16.769876}
   m_Parameters:
     serializedVersion: 3
     widthMultiplier: 1
@@ -5621,8 +5621,8 @@ LineRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_Positions:
-  - {x: 0.000000015365785, y: 0.4725482, z: 16.748535}
-  - {x: -0.036533017, y: 0.6962508, z: 16.784634}
+  - {x: 0.000000015365785, y: 0.95254815, z: 16.748535}
+  - {x: -0.036533017, y: 1.1762508, z: 16.784634}
   m_Parameters:
     serializedVersion: 3
     widthMultiplier: 1
@@ -7632,8 +7632,8 @@ LineRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_Positions:
-  - {x: 0.000000014419911, y: 0.36558205, z: 16.757502}
-  - {x: 0.000000015365785, y: 0.4725482, z: 16.748535}
+  - {x: 0.000000014419911, y: 0.845582, z: 16.757502}
+  - {x: 0.000000015365785, y: 0.95254815, z: 16.748535}
   m_Parameters:
     serializedVersion: 3
     widthMultiplier: 1
@@ -8295,6 +8295,14 @@ MonoBehaviour:
   footSoleOffset: 0.02
   groundSmoothing: 0
   enablePhysicalSquatDetection: 1
+  enableStanding: 1
+  enableSquatting: 1
+  enableKneeling: 1
+  enableSittingCrossLegged: 1
+  enableSittingEmok: 1
+  enableSittingChair: 1
+  poseCalibrationManager: {fileID: 0}
+  autoSyncWithCalibrationManager: 1
   squatHipsHeightThreshold: 0.55
   floorSittingHipThreshold: 0.38
   kneelingKneeHeightThreshold: 0.12684397
@@ -8376,48 +8384,60 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PoseCalibrationManager
   referencePoseAvatar: {fileID: 1286223515}
   tungkuTracker: {fileID: 586436944}
-  detectedPosture: 4
-  detectedPostureLabel: Duduk Emok
+  detectedPosture: 5
+  detectedPostureLabel: Duduk Normal
   topAccuracyPercent: 100
+  enableStanding: 1
+  enableSquatting: 1
+  enableKneeling: 1
+  enableSittingCrossLegged: 0
+  enableSittingEmok: 0
+  enableSittingChair: 1
   isBerdiri: 0
   isJongkok: 0
   isBerlutut: 0
   isDudukSila: 0
-  isDudukEmok: 1
-  isDudukNormal: 0
+  isDudukEmok: 0
+  isDudukNormal: 1
   allPostureScores:
   - postureType: 0
     labelIndonesian: Berdiri
+    isEnabled: 1
     accuracyPercent: 0
     isDetectedWinner: 0
   - postureType: 2
     labelIndonesian: Berlutut
-    accuracyPercent: 39.53561
+    isEnabled: 1
+    accuracyPercent: 26.750734
     isDetectedWinner: 0
   - postureType: 1
     labelIndonesian: Jongkok
-    accuracyPercent: 35.35722
+    isEnabled: 1
+    accuracyPercent: 71.79116
     isDetectedWinner: 0
   - postureType: 3
     labelIndonesian: Duduk Sila
-    accuracyPercent: 44.929947
+    isEnabled: 0
+    accuracyPercent: 0.00034127157
     isDetectedWinner: 0
   - postureType: 4
     labelIndonesian: Duduk Emok
-    accuracyPercent: 100
-    isDetectedWinner: 1
+    isEnabled: 0
+    accuracyPercent: 0.00030335248
+    isDetectedWinner: 0
   - postureType: 5
     labelIndonesian: Duduk Normal
-    accuracyPercent: 3.557633
-    isDetectedWinner: 0
-  liveHipHeight: 0.22558206
-  liveKneeAngle: 39.99997
-  liveKneeHeight: 0.1566557
-  liveKneeSpread: 0.13670295
-  liveAnkleAsymmetry: 0.17783388
-  liveHipToFootDistance: 0.32300666
-  squatHipHeight: 0.48
-  squatKneeAngle: 65
+    isEnabled: 1
+    accuracyPercent: 100
+    isDetectedWinner: 1
+  liveHipHeight: 0.705582
+  liveKneeAngle: 95
+  liveKneeHeight: 0.58227354
+  liveKneeSpread: 0.13670297
+  liveAnkleAsymmetry: 0.00000014901161
+  liveHipToFootDistance: 0.67733395
+  squatHipHeight: 0.48558205
+  squatKneeAngle: 65.33481
   kneelingKneeHeight: 0.08
   kneelingHipHeight: 0.58
   silaHipHeight: 0.22
@@ -8426,6 +8446,285 @@ MonoBehaviour:
   emokAnkleAsymmetry: 0.16
   chairHipHeight: 0.7
   chairKneeAngle: 95
+  customRecordedPoses:
+  - postureType: 1
+    hasCustomRecording: 1
+    recordedHipHeight: 0.48558205
+    recordedKneeAngle: 65.33481
+    recordedKneeHeight: 0.43850034
+    recordedKneeSpread: 0.45409226
+    recordedAnkleAsymmetry: 0.0213252
+    boneTransforms:
+    - boneName: U
+      localPosition: {x: -0, y: 0, z: 0}
+      localRotation: {x: 0, y: -0, z: -0, w: 1}
+    - boneName: joint_Char
+      localPosition: {x: -0, y: 0, z: 0}
+      localRotation: {x: 0, y: -0, z: -0, w: 1}
+    - boneName: joint_Pelvis
+      localPosition: {x: 0, y: 0.48558205, z: 0.012499556}
+      localRotation: {x: 0.0041470607, y: -0.70709467, z: -0.0041470607, w: 0.70709467}
+    - boneName: joint_HipMaster
+      localPosition: {x: 0.00011729454, y: -0.0099993115, z: 0}
+      localRotation: {x: 0.70709467, y: 0.00414706, z: -0.70709467, w: 0.00414706}
+    - boneName: joint_HipLT
+      localPosition: {x: -0.068351544, y: 0.07508164, z: 0.012376033}
+      localRotation: {x: -0.5213338, y: -0.47771442, z: 0.5213338, w: 0.47771445}
+    - boneName: joint_KneeLT
+      localPosition: {x: -0, y: 0.436, z: 0.165}
+      localRotation: {x: 0.11924876, y: 0.15540794, z: -0.827052, w: 0.52689}
+    - boneName: joint_FootLT
+      localPosition: {x: 0, y: 0.4044536, z: 0}
+      localRotation: {x: 0.0006188963, y: 0.00010908561, z: 0.21018182, w: 0.9776622}
+    - boneName: joint_ToeLT
+      localPosition: {x: -0.13071284, y: 0.08705344, z: 0.00049193576}
+      localRotation: {x: -0.009418923, y: -0.0065153046, z: 0.5682521, w: 0.8227748}
+    - boneName: joint_HipRT
+      localPosition: {x: 0.0683514, y: 0.07508168, z: 0.01237604}
+      localRotation: {x: -0.4777144, y: 0.5213339, z: 0.4777144, w: -0.5213339}
+    - boneName: joint_KneeRT
+      localPosition: {x: 0.0006418377, y: -0.4316172, z: -0.15236762}
+      localRotation: {x: 0.19293575, y: 0.25143826, z: -0.7999133, w: 0.5096012}
+    - boneName: joint_FootRT
+      localPosition: {x: 0, y: -0.40445364, z: 0}
+      localRotation: {x: 0.0006189517, y: 0.00010910958, z: 0.2101817, w: 0.9776622}
+    - boneName: joint_ToeRT
+      localPosition: {x: 0.13071288, y: -0.08705341, z: -0.0004919356}
+      localRotation: {x: -0.009418921, y: -0.006515305, z: 0.56825227, w: 0.82277477}
+    - boneName: joint_TorsoA
+      localPosition: {x: -0.00011729454, y: 0.0099993115, z: 9.027747e-17}
+      localRotation: {x: 0, y: 0, z: -0.03594268, w: 0.9993539}
+    - boneName: joint_TorsoB
+      localPosition: {x: -8.881784e-18, y: 0.10734129, z: -8.836077e-19}
+      localRotation: {x: 0, y: 0, z: 0.06521378, w: 0.99787134}
+    - boneName: joint_TorsoC
+      localPosition: {x: -0, y: 0.11231033, z: -2.8275056e-16}
+      localRotation: {x: 0, y: -0, z: -0, w: 1}
+    - boneName: joint_ClavicleLT
+      localPosition: {x: -0.025573561, y: 0.11283838, z: 0.036532916}
+      localRotation: {x: 0.0059003956, y: 0.7084948, z: 0.7051635, w: 0.02729158}
+    - boneName: joint_ShoulderLT
+      localPosition: {x: 3.9968027e-17, y: 0.093531236, z: 0}
+      localRotation: {x: -0.016957024, y: -0.00018829988, z: 0.014530214, w: 0.9997506}
+    - boneName: joint_ElbowLT
+      localPosition: {x: 7.105427e-17, y: 0.2269961, z: -3.9790393e-14}
+      localRotation: {x: 0.0000025518732, y: -0.0028904548, z: 0.00088933314, w: 0.99999547}
+    - boneName: joint_HandLT
+      localPosition: {x: 1.0658141e-16, y: 0.23313986, z: -8.5265126e-16}
+      localRotation: {x: -8.1111983e-14, y: 9.790346e-15, z: -9.9471314e-17, w: 1}
+    - boneName: joint_CapitateLT
+      localPosition: {x: -0.021424102, y: 0.069790296, z: -0.0024782459}
+      localRotation: {x: -0.116362035, y: 0.694368, z: 0.09353986, w: 0.7039626}
+    - boneName: joint_FingersALT
+      localPosition: {x: 0.00706949, y: 0.042375937, z: 0.021982698}
+      localRotation: {x: 0.1345443, y: 0.049669016, z: -0.27777836, w: 0.949879}
+    - boneName: joint_FingersBLT
+      localPosition: {x: 5.684342e-16, y: 0.031887036, z: -2.8865798e-17}
+      localRotation: {x: -0.0009607815, y: -0.00019416063, z: -0.21077913, w: 0.9775333}
+    - boneName: joint_FingersCLT
+      localPosition: {x: -2.842171e-16, y: 0.02438759, z: 3.9968027e-17}
+      localRotation: {x: -0.000947497, y: -0.00000014846323, z: -0.07122947, w: 0.99745953}
+    - boneName: joint_IndexALT
+      localPosition: {x: 0.007024702, y: 0.046245202, z: -0.0023835667}
+      localRotation: {x: 0.15881005, y: 0.06946245, z: -0.2678741, w: 0.947733}
+    - boneName: joint_IndexBLT
+      localPosition: {x: 8.5265126e-16, y: 0.03068365, z: 1.4432899e-16}
+      localRotation: {x: -0.0002989187, y: -0.0000058896912, z: -0.17269842, w: 0.98497474}
+    - boneName: joint_IndexCLT
+      localPosition: {x: 5.684342e-16, y: 0.021124095, z: -6.661338e-18}
+      localRotation: {x: -0.00020499296, y: 0.0000029912615, z: -0.11822002, w: 0.9929874}
+    - boneName: joint_PisiformLT
+      localPosition: {x: 0.011852952, y: 0.063561015, z: -0.002825897}
+      localRotation: {x: -0.021496367, y: 0.004695808, z: -0.09208779, w: 0.9955078}
+    - boneName: joint_PinkyALT
+      localPosition: {x: 0.008162565, y: 0.04939692, z: -0.0058326176}
+      localRotation: {x: -0.22032523, y: 0.675616, z: -0.13459355, w: 0.6905682}
+    - boneName: joint_PinkyBLT
+      localPosition: {x: -1.9895197e-15, y: 0.028839145, z: -3.5527135e-16}
+      localRotation: {x: -0.0022028433, y: 0.0022670592, z: -0.11884606, w: 0.9929077}
+    - boneName: joint_PinkyCLT
+      localPosition: {x: -5.684342e-16, y: 0.017920913, z: 7.105427e-17}
+      localRotation: {x: 0.007807641, y: 0.004906696, z: -0.14258586, w: 0.9897395}
+    - boneName: joint_RingALT
+      localPosition: {x: -0.011868427, y: 0.05057203, z: -0.0057523213}
+      localRotation: {x: -0.25609022, y: 0.6680858, z: -0.15529598, w: 0.6811478}
+    - boneName: joint_RingBLT
+      localPosition: {x: -1.4210854e-15, y: 0.033019386, z: -4.4408918e-17}
+      localRotation: {x: -0.009937058, y: 0.00091285893, z: -0.1214436, w: 0.99254817}
+    - boneName: joint_RingCLT
+      localPosition: {x: -2.842171e-16, y: 0.018736096, z: -8.881784e-18}
+      localRotation: {x: 0.010815306, y: 0.007817986, z: -0.1474245, w: 0.98898333}
+    - boneName: joint_ThumbALT
+      localPosition: {x: -0.021969557, y: 0.029900543, z: -0.0027506538}
+      localRotation: {x: -0.306875, y: 0.38426033, z: 0.37868413, w: 0.78407276}
+    - boneName: joint_ThumbBLT
+      localPosition: {x: -7.105427e-17, y: 0.031011702, z: -1.1368684e-15}
+      localRotation: {x: -0.008588793, y: 0.0014189369, z: -0.1228198, w: 0.9923908}
+    - boneName: joint_ThumbCLT
+      localPosition: {x: -7.105427e-17, y: 0.033555813, z: 2.842171e-16}
+      localRotation: {x: -0.0019168007, y: -6.9391075e-13, z: -0.14090973, w: 0.9900206}
+    - boneName: joint_ClavicleRT
+      localPosition: {x: -0.02557371, y: 0.112838455, z: -0.036533024}
+      localRotation: {x: 0.708495, y: -0.005900718, z: -0.027291263, w: 0.70516324}
+    - boneName: joint_ShoulderRT
+      localPosition: {x: 1.3322676e-17, y: -0.09353118, z: 5.684342e-16}
+      localRotation: {x: -0.016957358, y: -0.0001882892, z: 0.014529762, w: 0.9997507}
+    - boneName: joint_ElbowRT
+      localPosition: {x: -8.437695e-17, y: -0.22699605, z: -3.524292e-14}
+      localRotation: {x: 0.0000025518964, y: -0.002890455, z: 0.0008893413, w: 0.99999547}
+    - boneName: joint_HandRT
+      localPosition: {x: -8.8817837e-17, y: -0.23313999, z: -8.5265126e-16}
+      localRotation: {x: -0.0000000010213567, y: 6.749419e-11, z: 0.0000000032573064, w: 1}
+    - boneName: joint_CapitateRT
+      localPosition: {x: 0.021424117, y: -0.069790326, z: 0.0024782456}
+      localRotation: {x: -0.11636208, y: 0.69436795, z: 0.093539916, w: 0.70396256}
+    - boneName: joint_FingersART
+      localPosition: {x: -0.007069473, y: -0.042376056, z: -0.021982742}
+      localRotation: {x: 0.13454434, y: 0.049669035, z: -0.27777836, w: 0.949879}
+    - boneName: joint_FingersBRT
+      localPosition: {x: -0, y: -0.031887036, z: -9.436895e-17}
+      localRotation: {x: -0.00096078153, y: -0.00019416056, z: -0.2107791, w: 0.9775333}
+    - boneName: joint_FingersCRT
+      localPosition: {x: -0, y: -0.024387605, z: -7.5495166e-17}
+      localRotation: {x: -0.00094749697, y: -0.00000014838454, z: -0.07122952, w: 0.99745953}
+    - boneName: joint_IndexART
+      localPosition: {x: -0.0070247054, y: -0.04624521, z: 0.0023835532}
+      localRotation: {x: 0.1588101, y: 0.06946246, z: -0.2678741, w: 0.947733}
+    - boneName: joint_IndexBRT
+      localPosition: {x: -2.842171e-16, y: -0.030683631, z: -5.9952044e-16}
+      localRotation: {x: -0.0002989187, y: -0.000005889692, z: -0.17269842, w: 0.98497474}
+    - boneName: joint_IndexCRT
+      localPosition: {x: 2.842171e-16, y: -0.021124093, z: -5.551115e-17}
+      localRotation: {x: -0.00020499292, y: 0.0000029912653, z: -0.118219994, w: 0.99298745}
+    - boneName: joint_PisiformRT
+      localPosition: {x: -0.011852939, y: -0.06356116, z: 0.0028258937}
+      localRotation: {x: -0.021496302, y: 0.004695787, z: -0.0920875, w: 0.9955078}
+    - boneName: joint_PinkyART
+      localPosition: {x: -0.008162671, y: -0.049396653, z: 0.005832635}
+      localRotation: {x: -0.22032507, y: 0.6756161, z: -0.13459377, w: 0.6905681}
+    - boneName: joint_PinkyBRT
+      localPosition: {x: -2.842171e-16, y: -0.028839132, z: 2.9309886e-16}
+      localRotation: {x: -0.0022028405, y: 0.0022670606, z: -0.11884607, w: 0.9929077}
+    - boneName: joint_PinkyCRT
+      localPosition: {x: 5.684342e-16, y: -0.01792091, z: -3.5527136e-17}
+      localRotation: {x: 0.0078076455, y: 0.004906698, z: -0.14258586, w: 0.9897395}
+    - boneName: joint_RingART
+      localPosition: {x: 0.011868383, y: -0.050572023, z: 0.005752319}
+      localRotation: {x: -0.25609002, y: 0.6680859, z: -0.1552962, w: 0.68114775}
+    - boneName: joint_RingBRT
+      localPosition: {x: -2.842171e-16, y: -0.0330195, z: -5.062617e-16}
+      localRotation: {x: -0.009937101, y: 0.00091285206, z: -0.121443644, w: 0.99254817}
+    - boneName: joint_RingCRT
+      localPosition: {x: -2.842171e-16, y: -0.018736098, z: 4.4408918e-17}
+      localRotation: {x: 0.010815305, y: 0.0078179855, z: -0.14742452, w: 0.98898333}
+    - boneName: joint_ThumbART
+      localPosition: {x: 0.021969564, y: -0.029900536, z: 0.0027506629}
+      localRotation: {x: -0.30687505, y: 0.3842603, z: 0.37868404, w: 0.78407276}
+    - boneName: joint_ThumbBRT
+      localPosition: {x: -7.105427e-17, y: -0.03101184, z: 5.684342e-16}
+      localRotation: {x: -0.008588796, y: 0.0014189346, z: -0.1228197, w: 0.9923909}
+    - boneName: joint_ThumbCRT
+      localPosition: {x: -0, y: -0.033555735, z: -2.842171e-16}
+      localRotation: {x: -0.001916801, y: 3.4880343e-12, z: -0.14090975, w: 0.9900206}
+    - boneName: joint_Neck
+      localPosition: {x: -0.030508418, y: 0.16579065, z: -4.3114498e-16}
+      localRotation: {x: -0.00003687589, y: 0.000004050208, z: -0.10917696, w: 0.99402237}
+    - boneName: joint_Head
+      localPosition: {x: 3.5527136e-17, y: 0.11096524, z: 6.5399076e-17}
+      localRotation: {x: 0.00007200721, y: -0.00000019133023, z: 0.16983414, w: 0.9854727}
+    - boneName: joint_CheekLT
+      localPosition: {x: 0.08620723, y: 0.016572693, z: 0.0404238}
+      localRotation: {x: -0.000035931065, y: 0.0000016958423, z: 0.04714463, w: 0.9988881}
+    - boneName: joint_CheekRT
+      localPosition: {x: 0.08620712, y: 0.016566973, z: -0.04040974}
+      localRotation: {x: -0.000035931065, y: 0.0000016958423, z: 0.04714463, w: 0.9988881}
+    - boneName: joint_DimpleLT
+      localPosition: {x: 0.077869825, y: -0.01672987, z: 0.040882334}
+      localRotation: {x: -0.000035952125, y: 0.0000017219473, z: 0.047144618, w: 0.9988881}
+    - boneName: joint_DimpleRT
+      localPosition: {x: 0.07786978, y: -0.016735878, z: -0.040863328}
+      localRotation: {x: -0.000035939145, y: 0.0000016385092, z: 0.047144618, w: 0.9988881}
+    - boneName: joint_EyebrowInnerLT
+      localPosition: {x: 0.10109493, y: 0.049296916, z: 0.01578462}
+      localRotation: {x: -0.000035889392, y: 0.0000016842349, z: 0.04714465, w: 0.9988881}
+    - boneName: joint_EyebrowInnerRT
+      localPosition: {x: 0.10109479, y: 0.04929467, z: -0.015775235}
+      localRotation: {x: -0.00003597274, y: 0.0000017074483, z: 0.04714465, w: 0.9988881}
+    - boneName: joint_EyebrowOuterLT
+      localPosition: {x: 0.097099856, y: 0.060182307, z: 0.035207912}
+      localRotation: {x: -0.000035931065, y: 0.0000016958423, z: 0.04714463, w: 0.9988881}
+    - boneName: joint_EyebrowOuterRT
+      localPosition: {x: 0.09709985, y: 0.060177144, z: -0.03520019}
+      localRotation: {x: -0.000035931065, y: 0.0000016958423, z: 0.04714463, w: 0.9988881}
+    - boneName: joint_EyelidsDownLT
+      localPosition: {x: 0.07517924, y: 0.044309095, z: 0.03051075}
+      localRotation: {x: -0.000035931065, y: 0.0000016958423, z: 0.04714463, w: 0.9988881}
+    - boneName: joint_EyelidsDownRT
+      localPosition: {x: 0.0751791, y: 0.044304647, z: -0.030500557}
+      localRotation: {x: -0.000035931065, y: 0.0000016958423, z: 0.04714463, w: 0.9988881}
+    - boneName: joint_EyelidUpLT
+      localPosition: {x: 0.07534785, y: 0.045294777, z: 0.030510677}
+      localRotation: {x: -0.000035931065, y: 0.0000016958423, z: 0.04714463, w: 0.9988881}
+    - boneName: joint_EyelidUpRT
+      localPosition: {x: 0.07534773, y: 0.045290373, z: -0.030500628}
+      localRotation: {x: -0.000035931065, y: 0.0000016958423, z: 0.04714463, w: 0.9988881}
+    - boneName: joint_EyeLT
+      localPosition: {x: 0.06858908, y: 0.04614756, z: 0.030372534}
+      localRotation: {x: -0.000050135728, y: 0.000045479428, z: 0.138001, w: 0.9904321}
+    - boneName: joint_EyeRT
+      localPosition: {x: 0.06858917, y: 0.046143163, z: -0.030362705}
+      localRotation: {x: -0.000021118272, y: -0.000035551373, z: 0.138001, w: 0.9904321}
+    - boneName: joint_Jaw
+      localPosition: {x: 0.027292715, y: 0.0030089696, z: 0.000005300144}
+      localRotation: {x: 0.6817181, y: 0.18772855, z: -0.6816796, w: 0.18796624}
+    - boneName: joint_LipCornerLT
+      localPosition: {x: 0.08436283, y: -0.024852712, z: 0.02838105}
+      localRotation: {x: -0.000035965935, y: 0.0000016845576, z: 0.047144618, w: 0.9988881}
+    - boneName: joint_LipCornerRT
+      localPosition: {x: 0.084362954, y: -0.024856826, z: -0.028361006}
+      localRotation: {x: -0.000035921963, y: 0.0000016749699, z: 0.047144618, w: 0.9988881}
+    - boneName: joint_LowerLip
+      localPosition: {x: 0.09679368, y: -0.029298112, z: 0.0000327566}
+      localRotation: {x: -0.0022607963, y: -0.0000031059378, z: 0.047639623, w: 0.998862}
+    - boneName: joint_LowerLipLT
+      localPosition: {x: 0.092631176, y: -0.02872264, z: 0.0118472325}
+      localRotation: {x: -0.000035880286, y: 0.0000016673145, z: 0.04714462, w: 0.9988881}
+    - boneName: joint_LowerLipRT
+      localPosition: {x: 0.092631035, y: -0.028724331, z: -0.011826639}
+      localRotation: {x: -0.000036009904, y: 0.0000016951572, z: 0.047144618, w: 0.9988881}
+    - boneName: joint_NoseMain
+      localPosition: {x: 0.10065738, y: 0.003892789, z: 0.000023254803}
+      localRotation: {x: -0.000035948997, y: 0.0000016889632, z: 0.047144674, w: 0.9988881}
+    - boneName: joint_NoseSideLT
+      localPosition: {x: 0.09888673, y: -0.0036886358, z: 0.010685859}
+      localRotation: {x: -0.00003593789, y: 0.0000016648976, z: 0.04714463, w: 0.9988881}
+    - boneName: joint_NoseSideRT
+      localPosition: {x: 0.09888659, y: -0.003690285, z: -0.010668858}
+      localRotation: {x: -0.00003592424, y: 0.0000017267839, z: 0.04714463, w: 0.9988881}
+    - boneName: joint_UpperLip
+      localPosition: {x: 0.098340765, y: -0.02507382, z: 0.00003111151}
+      localRotation: {x: -0.000035950612, y: 0.0000016740169, z: 0.04714463, w: 0.9988881}
+    - boneName: joint_UpperLipLT
+      localPosition: {x: 0.09353665, y: -0.023451425, z: 0.014450802}
+      localRotation: {x: -0.000035947156, y: 0.0000016732223, z: 0.047144618, w: 0.9988881}
+    - boneName: joint_UpperLipRT
+      localPosition: {x: 0.093536735, y: -0.023453439, z: -0.014430954}
+      localRotation: {x: -0.00003593678, y: 0.0000016943364, z: 0.047144614, w: 0.9988881}
+    - boneName: Cube
+      localPosition: {x: 0, y: 0, z: 0}
+      localRotation: {x: 0, y: 0, z: 0, w: 1}
+    - boneName: U_Char
+      localPosition: {x: -0, y: 0, z: 0}
+      localRotation: {x: 0, y: -0, z: -0, w: 1}
+    - boneName: U_Char_Eye_L
+      localPosition: {x: -0, y: 0, z: 0}
+      localRotation: {x: 0, y: -0, z: -0, w: 1}
+    - boneName: U_Char_Eye_R
+      localPosition: {x: -0, y: 0, z: 0}
+      localRotation: {x: 0, y: -0, z: -0, w: 1}
+    - boneName: Capsule
+      localPosition: {x: 0.01, y: 0.835, z: 0}
+      localRotation: {x: -0, y: -1, z: -0, w: -0.00000004371139}
   showOnScreenGUI: 1
   toggleGuiHotkey: 284
   dummyAnimator: {fileID: 1286223522}
@@ -8455,7 +8754,7 @@ MonoBehaviour:
   originalRFootPos: {x: 0, y: -0.40445364, z: 0}
   originalRFootRot: {x: 0.0006284835, y: 0, z: 0.037219413, w: 0.9993069}
   standingHipHeight: 1.065582
-  activeShowcasePose: 4
+  activeShowcasePose: 5
   isShowcaseMode: 1
 --- !u!1 &590448878
 GameObject:
@@ -8539,8 +8838,8 @@ LineRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_Positions:
-  - {x: 0.21490268, y: 0.28665572, z: 16.3568}
-  - {x: -0.10948235, y: 0.16579023, z: 16.565962}
+  - {x: 0.06835168, y: 0.7122737, z: 16.332945}
+  - {x: 0.06835168, y: 0.30782008, z: 16.332945}
   m_Parameters:
     serializedVersion: 3
     widthMultiplier: 1
@@ -9854,7 +10153,6 @@ MonoBehaviour:
   colorPanelCardBg: {r: 0.08, g: 0.12, b: 0.18, a: 0.94}
   colorHeaderBg: {r: 0.12, g: 0.18, b: 0.26, a: 0.98}
   targetCanvas: {fileID: 606286479}
-  iconCanvasGroup: {fileID: 948102005}
   panelContainer: {fileID: 1737546491}
   panelCard: {fileID: 1744377337}
   floatingTab: {fileID: 1657501127}
@@ -10985,8 +11283,8 @@ LineRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_Positions:
-  - {x: 0.35691467, y: 0.68983465, z: 16.787766}
-  - {x: 0.58995026, y: 0.6828607, z: 16.787651}
+  - {x: 0.35691467, y: 1.1698346, z: 16.787766}
+  - {x: 0.58995026, y: 1.1628606, z: 16.787651}
   m_Parameters:
     serializedVersion: 3
     widthMultiplier: 1
@@ -11892,8 +12190,8 @@ LineRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_Positions:
-  - {x: -0.036533017, y: 0.6962508, z: 16.784634}
-  - {x: -0.13002037, y: 0.6966251, z: 16.787472}
+  - {x: -0.036533017, y: 1.1762508, z: 16.784634}
+  - {x: -0.13002037, y: 1.176625, z: 16.787472}
   m_Parameters:
     serializedVersion: 3
     widthMultiplier: 1
@@ -12496,6 +12794,169 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!1 &884743443
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 884743449}
+  - component: {fileID: 884743448}
+  - component: {fileID: 884743447}
+  - component: {fileID: 884743446}
+  - component: {fileID: 884743445}
+  - component: {fileID: 884743444}
+  m_Layer: 0
+  m_Name: Main Camera (2)
+  m_TagString: MainCamera
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 0
+--- !u!114 &884743444
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 884743443}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a79441f348de89743a2939f4d699eac1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.RenderPipelines.Universal.Runtime::UnityEngine.Rendering.Universal.UniversalAdditionalCameraData
+  m_RenderShadows: 1
+  m_RequiresDepthTextureOption: 2
+  m_RequiresOpaqueTextureOption: 2
+  m_CameraType: 0
+  m_Cameras: []
+  m_RendererIndex: -1
+  m_VolumeLayerMask:
+    serializedVersion: 2
+    m_Bits: 1
+  m_VolumeTrigger: {fileID: 0}
+  m_VolumeFrameworkUpdateModeOption: 2
+  m_RenderPostProcessing: 1
+  m_Antialiasing: 0
+  m_AntialiasingQuality: 2
+  m_StopNaN: 0
+  m_Dithering: 0
+  m_ClearDepth: 1
+  m_AllowXRRendering: 1
+  m_AllowHDROutput: 1
+  m_UseScreenCoordOverride: 0
+  m_ScreenSizeOverride: {x: 0, y: 0, z: 0, w: 0}
+  m_ScreenCoordScaleBias: {x: 0, y: 0, z: 0, w: 0}
+  m_RequiresDepthTexture: 0
+  m_RequiresColorTexture: 0
+  m_TaaSettings:
+    m_Quality: 3
+    m_FrameInfluence: 0.1
+    m_JitterScale: 1
+    m_MipBias: 0
+    m_VarianceClampScale: 0.9
+    m_ContrastAdaptiveSharpening: 0
+  m_Version: 2
+--- !u!114 &884743445
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 884743443}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4cc1ab3b238b3d04494e08e631ebffe7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CameraShake
+  isShakeEnabled: 1
+  intensity: 0.15
+  xFrequency: 0.47
+  yFrequency: 0.62
+--- !u!81 &884743446
+AudioListener:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 884743443}
+  m_Enabled: 1
+--- !u!124 &884743447
+Behaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 884743443}
+  m_Enabled: 1
+--- !u!20 &884743448
+Camera:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 884743443}
+  m_Enabled: 1
+  serializedVersion: 2
+  m_ClearFlags: 2
+  m_BackGroundColor: {r: 0.19215687, g: 0.3019608, b: 0.4745098, a: 0.07450981}
+  m_projectionMatrixMode: 1
+  m_GateFitMode: 2
+  m_FOVAxisMode: 0
+  m_Iso: 200
+  m_ShutterSpeed: 0.005
+  m_Aperture: 16
+  m_FocusDistance: 10
+  m_FocalLength: 21.29657
+  m_BladeCount: 5
+  m_Curvature: {x: 2, y: 11}
+  m_BarrelClipping: 0.25
+  m_Anamorphism: 0
+  m_SensorSize: {x: 36, y: 24}
+  m_LensShift: {x: 0, y: 0}
+  m_NormalizedViewPortRect:
+    serializedVersion: 2
+    x: 0
+    y: 0
+    width: 1
+    height: 1
+  near clip plane: 0.3
+  far clip plane: 1000
+  field of view: 68.5
+  orthographic: 0
+  orthographic size: 100
+  m_Depth: -1
+  m_CullingMask:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_RenderingPath: -1
+  m_TargetTexture: {fileID: 0}
+  m_TargetDisplay: 0
+  m_TargetEye: 3
+  m_HDR: 0
+  m_AllowMSAA: 1
+  m_AllowDynamicResolution: 0
+  m_ForceIntoRT: 0
+  m_OcclusionCulling: 0
+  m_StereoConvergence: 10
+  m_StereoSeparation: 0.022
+--- !u!4 &884743449
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 884743443}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: -0.7071068, z: 0, w: 0.7071068}
+  m_LocalPosition: {x: 2.24, y: 1.44, z: -1.831}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: -90, z: 0}
 --- !u!1 &889617850
 GameObject:
   m_ObjectHideFlags: 0
@@ -13601,7 +14062,7 @@ RectTransform:
   m_AnchorMin: {x: 1, y: 1}
   m_AnchorMax: {x: 1, y: 1}
   m_AnchoredPosition: {x: -471.28, y: -42}
-  m_SizeDelta: {x: 48, y: 48}
+  m_SizeDelta: {x: 107.02, y: 168.6}
   m_Pivot: {x: 1, y: 1}
 --- !u!222 &948102002
 CanvasRenderer:
@@ -13661,7 +14122,7 @@ MonoBehaviour:
   tooltipBodyText: {fileID: 948102033}
   warningSprite: {fileID: 21300000, guid: 67f0e5bb19b94ea0a5592a20d003fd04, type: 3}
   anchoredPosition: {x: -471.28, y: -42}
-  iconSize: {x: 48, y: 48}
+  iconSize: {x: 107.02, y: 168.6}
   hideWhenConnected: 1
   warningColor: {r: 1, g: 0.72, b: 0.05, a: 1}
   warningPulseColor: {r: 1, g: 0.28, b: 0.15, a: 1}
@@ -13670,7 +14131,23 @@ MonoBehaviour:
   tooltipMessage: "Sensor Xbox Kinect belum siap atau tidak terhubung ke PC.\n\n\u2022
     Periksa kabel data USB 3.0 ke PC\n\u2022 Periksa colokan power adaptor Kinect\n\u2022
     Pastikan driver Kinect SDK v2 aktif"
+  isKinectConnectedLive: 1
+  sensorPlatformName: Kinect2 Available (Edit Mode)
+  hasReceivedAnyFrames: 0
+  secondsSinceLastFrame: 0
   simulateDisconnected: 0
+--- !u!225 &948102005
+CanvasGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 948102000}
+  m_Enabled: 1
+  m_Alpha: 0
+  m_Interactable: 0
+  m_BlocksRaycasts: 0
+  m_IgnoreParentGroups: 0
 --- !u!1 &948102010
 GameObject:
   m_ObjectHideFlags: 0
@@ -14291,8 +14768,8 @@ LineRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_Positions:
-  - {x: -0.0683514, y: 0.27050036, z: 16.769876}
-  - {x: 0.07819974, y: 0.2866557, z: 16.3568}
+  - {x: -0.0683514, y: 0.7505003, z: 16.769876}
+  - {x: -0.06835129, y: 0.71227354, z: 16.332945}
   m_Parameters:
     serializedVersion: 3
     widthMultiplier: 1
@@ -15544,8 +16021,8 @@ LineRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_Positions:
-  - {x: 0.000000010709172, y: 0.74891347, z: 16.792044}
-  - {x: -0.000008220528, y: 0.8582433, z: 16.773064}
+  - {x: 0.000000010709172, y: 1.2289134, z: 16.792044}
+  - {x: -0.000008220528, y: 1.3382432, z: 16.773064}
   m_Parameters:
     serializedVersion: 3
     widthMultiplier: 1
@@ -15830,6 +16307,169 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 400066, guid: ae23d50304c93b9418b65cec8f9fe954, type: 3}
   m_PrefabInstance: {fileID: 1286223454}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1083567705
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1083567711}
+  - component: {fileID: 1083567710}
+  - component: {fileID: 1083567709}
+  - component: {fileID: 1083567708}
+  - component: {fileID: 1083567707}
+  - component: {fileID: 1083567706}
+  m_Layer: 0
+  m_Name: Main Camera (1)
+  m_TagString: MainCamera
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1083567706
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1083567705}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a79441f348de89743a2939f4d699eac1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.RenderPipelines.Universal.Runtime::UnityEngine.Rendering.Universal.UniversalAdditionalCameraData
+  m_RenderShadows: 1
+  m_RequiresDepthTextureOption: 2
+  m_RequiresOpaqueTextureOption: 2
+  m_CameraType: 0
+  m_Cameras: []
+  m_RendererIndex: -1
+  m_VolumeLayerMask:
+    serializedVersion: 2
+    m_Bits: 1
+  m_VolumeTrigger: {fileID: 0}
+  m_VolumeFrameworkUpdateModeOption: 2
+  m_RenderPostProcessing: 1
+  m_Antialiasing: 0
+  m_AntialiasingQuality: 2
+  m_StopNaN: 0
+  m_Dithering: 0
+  m_ClearDepth: 1
+  m_AllowXRRendering: 1
+  m_AllowHDROutput: 1
+  m_UseScreenCoordOverride: 0
+  m_ScreenSizeOverride: {x: 0, y: 0, z: 0, w: 0}
+  m_ScreenCoordScaleBias: {x: 0, y: 0, z: 0, w: 0}
+  m_RequiresDepthTexture: 0
+  m_RequiresColorTexture: 0
+  m_TaaSettings:
+    m_Quality: 3
+    m_FrameInfluence: 0.1
+    m_JitterScale: 1
+    m_MipBias: 0
+    m_VarianceClampScale: 0.9
+    m_ContrastAdaptiveSharpening: 0
+  m_Version: 2
+--- !u!114 &1083567707
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1083567705}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4cc1ab3b238b3d04494e08e631ebffe7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CameraShake
+  isShakeEnabled: 1
+  intensity: 0.15
+  xFrequency: 0.47
+  yFrequency: 0.62
+--- !u!81 &1083567708
+AudioListener:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1083567705}
+  m_Enabled: 1
+--- !u!124 &1083567709
+Behaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1083567705}
+  m_Enabled: 1
+--- !u!20 &1083567710
+Camera:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1083567705}
+  m_Enabled: 1
+  serializedVersion: 2
+  m_ClearFlags: 2
+  m_BackGroundColor: {r: 0.19215687, g: 0.3019608, b: 0.4745098, a: 0.07450981}
+  m_projectionMatrixMode: 1
+  m_GateFitMode: 2
+  m_FOVAxisMode: 0
+  m_Iso: 200
+  m_ShutterSpeed: 0.005
+  m_Aperture: 16
+  m_FocusDistance: 10
+  m_FocalLength: 21.29657
+  m_BladeCount: 5
+  m_Curvature: {x: 2, y: 11}
+  m_BarrelClipping: 0.25
+  m_Anamorphism: 0
+  m_SensorSize: {x: 36, y: 24}
+  m_LensShift: {x: 0, y: 0}
+  m_NormalizedViewPortRect:
+    serializedVersion: 2
+    x: 0
+    y: 0
+    width: 1
+    height: 1
+  near clip plane: 0.3
+  far clip plane: 1000
+  field of view: 67
+  orthographic: 0
+  orthographic size: 100
+  m_Depth: -1
+  m_CullingMask:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_RenderingPath: -1
+  m_TargetTexture: {fileID: 0}
+  m_TargetDisplay: 0
+  m_TargetEye: 3
+  m_HDR: 0
+  m_AllowMSAA: 1
+  m_AllowDynamicResolution: 0
+  m_ForceIntoRT: 0
+  m_OcclusionCulling: 0
+  m_StereoConvergence: 10
+  m_StereoSeparation: 0.022
+--- !u!4 &1083567711
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1083567705}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: 0.695341, z: -0, w: 0.71868}
+  m_LocalPosition: {x: -1.407, y: 1.042, z: -1.57}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 88.109, z: 0}
 --- !u!1 &1084491289
 GameObject:
   m_ObjectHideFlags: 0
@@ -16171,8 +16811,8 @@ LineRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_Positions:
-  - {x: 0.068351574, y: 0.2705004, z: 16.769876}
-  - {x: 0.21490268, y: 0.28665572, z: 16.3568}
+  - {x: 0.068351574, y: 0.7505003, z: 16.769876}
+  - {x: 0.06835168, y: 0.7122737, z: 16.332945}
   m_Parameters:
     serializedVersion: 3
     widthMultiplier: 1
@@ -16885,8 +17525,8 @@ LineRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_Positions:
-  - {x: -0.24618539, y: 0.16579026, z: 16.565962}
-  - {x: -0.3679129, y: 0.10240421, z: 16.489613}
+  - {x: -0.06835135, y: 0.30781972, z: 16.332945}
+  - {x: -0.06894653, y: 0.23073143, z: 16.196117}
   m_Parameters:
     serializedVersion: 3
     widthMultiplier: 1
@@ -17498,8 +18138,8 @@ LineRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_Positions:
-  - {x: 0.0000000144344625, y: 0.35558206, z: 16.757502}
-  - {x: 0.000000014419911, y: 0.36558205, z: 16.757502}
+  - {x: 0.0000000144344625, y: 0.835582, z: 16.757502}
+  - {x: 0.000000014419911, y: 0.845582, z: 16.757502}
   m_Parameters:
     serializedVersion: 3
     widthMultiplier: 1
@@ -18391,8 +19031,8 @@ LineRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_Positions:
-  - {x: 0.03653293, y: 0.6962507, z: 16.784634}
-  - {x: 0.13002035, y: 0.696625, z: 16.787472}
+  - {x: 0.03653293, y: 1.1762507, z: 16.784634}
+  - {x: 0.13002035, y: 1.1766249, z: 16.787472}
   m_Parameters:
     serializedVersion: 3
     widthMultiplier: 1
@@ -18542,8 +19182,8 @@ LineRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_Positions:
-  - {x: -0.13002037, y: 0.6966251, z: 16.787472}
-  - {x: -0.35691467, y: 0.6898348, z: 16.787766}
+  - {x: -0.13002037, y: 1.176625, z: 16.787472}
+  - {x: -0.35691467, y: 1.1698347, z: 16.787766}
   m_Parameters:
     serializedVersion: 3
     widthMultiplier: 1
@@ -19220,19 +19860,19 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 400064, guid: ae23d50304c93b9418b65cec8f9fe954, type: 3}
       propertyPath: m_LocalRotation.w
-      value: 0.6931965
+      value: 0.5213338
       objectReference: {fileID: 0}
     - target: {fileID: 400064, guid: ae23d50304c93b9418b65cec8f9fe954, type: 3}
       propertyPath: m_LocalRotation.x
-      value: -0.66651887
+      value: -0.4777144
       objectReference: {fileID: 0}
     - target: {fileID: 400064, guid: ae23d50304c93b9418b65cec8f9fe954, type: 3}
       propertyPath: m_LocalRotation.y
-      value: -0.032586325
+      value: -0.5213338
       objectReference: {fileID: 0}
     - target: {fileID: 400064, guid: ae23d50304c93b9418b65cec8f9fe954, type: 3}
       propertyPath: m_LocalRotation.z
-      value: 0.27234077
+      value: 0.4777144
       objectReference: {fileID: 0}
     - target: {fileID: 400066, guid: ae23d50304c93b9418b65cec8f9fe954, type: 3}
       propertyPath: m_LocalPosition.z
@@ -19240,23 +19880,27 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 400068, guid: ae23d50304c93b9418b65cec8f9fe954, type: 3}
       propertyPath: m_LocalRotation.w
-      value: -0.27234074
+      value: -0.4777144
       objectReference: {fileID: 0}
     - target: {fileID: 400068, guid: ae23d50304c93b9418b65cec8f9fe954, type: 3}
       propertyPath: m_LocalRotation.x
-      value: -0.032586236
+      value: -0.5213339
       objectReference: {fileID: 0}
     - target: {fileID: 400068, guid: ae23d50304c93b9418b65cec8f9fe954, type: 3}
       propertyPath: m_LocalRotation.y
-      value: 0.66651887
+      value: 0.4777144
       objectReference: {fileID: 0}
     - target: {fileID: 400068, guid: ae23d50304c93b9418b65cec8f9fe954, type: 3}
       propertyPath: m_LocalRotation.z
-      value: 0.6931964
+      value: 0.5213339
       objectReference: {fileID: 0}
     - target: {fileID: 400084, guid: ae23d50304c93b9418b65cec8f9fe954, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 400084, guid: ae23d50304c93b9418b65cec8f9fe954, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0.43860123
       objectReference: {fileID: 0}
     - target: {fileID: 400084, guid: ae23d50304c93b9418b65cec8f9fe954, type: 3}
       propertyPath: m_LocalPosition.z
@@ -19264,23 +19908,39 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 400084, guid: ae23d50304c93b9418b65cec8f9fe954, type: 3}
       propertyPath: m_LocalRotation.w
-      value: 0.3420202
+      value: 0.7372773
       objectReference: {fileID: 0}
     - target: {fileID: 400084, guid: ae23d50304c93b9418b65cec8f9fe954, type: 3}
       propertyPath: m_LocalRotation.x
-      value: 0.000000029802312
+      value: -0
       objectReference: {fileID: 0}
     - target: {fileID: 400084, guid: ae23d50304c93b9418b65cec8f9fe954, type: 3}
       propertyPath: m_LocalRotation.y
-      value: -0.000000029802312
+      value: -0
       objectReference: {fileID: 0}
     - target: {fileID: 400084, guid: ae23d50304c93b9418b65cec8f9fe954, type: 3}
       propertyPath: m_LocalRotation.z
-      value: -0.93969256
+      value: -0.6755902
+      objectReference: {fileID: 0}
+    - target: {fileID: 400084, guid: ae23d50304c93b9418b65cec8f9fe954, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 22.502
+      objectReference: {fileID: 0}
+    - target: {fileID: 400084, guid: ae23d50304c93b9418b65cec8f9fe954, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: -2.077
+      objectReference: {fileID: 0}
+    - target: {fileID: 400084, guid: ae23d50304c93b9418b65cec8f9fe954, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: -115.413
       objectReference: {fileID: 0}
     - target: {fileID: 400086, guid: ae23d50304c93b9418b65cec8f9fe954, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 400086, guid: ae23d50304c93b9418b65cec8f9fe954, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: -0.43860134
       objectReference: {fileID: 0}
     - target: {fileID: 400086, guid: ae23d50304c93b9418b65cec8f9fe954, type: 3}
       propertyPath: m_LocalPosition.z
@@ -19288,11 +19948,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 400086, guid: ae23d50304c93b9418b65cec8f9fe954, type: 3}
       propertyPath: m_LocalRotation.w
-      value: 0.34202024
+      value: 0.7372774
       objectReference: {fileID: 0}
     - target: {fileID: 400086, guid: ae23d50304c93b9418b65cec8f9fe954, type: 3}
       propertyPath: m_LocalRotation.x
-      value: -0
+      value: 0.0000000012715974
       objectReference: {fileID: 0}
     - target: {fileID: 400086, guid: ae23d50304c93b9418b65cec8f9fe954, type: 3}
       propertyPath: m_LocalRotation.y
@@ -19300,7 +19960,19 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 400086, guid: ae23d50304c93b9418b65cec8f9fe954, type: 3}
       propertyPath: m_LocalRotation.z
-      value: -0.93969256
+      value: -0.6755903
+      objectReference: {fileID: 0}
+    - target: {fileID: 400086, guid: ae23d50304c93b9418b65cec8f9fe954, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 36.791
+      objectReference: {fileID: 0}
+    - target: {fileID: 400086, guid: ae23d50304c93b9418b65cec8f9fe954, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: -3.751
+      objectReference: {fileID: 0}
+    - target: {fileID: 400086, guid: ae23d50304c93b9418b65cec8f9fe954, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: -116.248
       objectReference: {fileID: 0}
     - target: {fileID: 400106, guid: ae23d50304c93b9418b65cec8f9fe954, type: 3}
       propertyPath: m_LocalPosition.x
@@ -19308,7 +19980,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 400106, guid: ae23d50304c93b9418b65cec8f9fe954, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 0.22558206
+      value: 0.705582
       objectReference: {fileID: 0}
     - target: {fileID: 400106, guid: ae23d50304c93b9418b65cec8f9fe954, type: 3}
       propertyPath: m_LocalRotation.x
@@ -22318,8 +22990,8 @@ LineRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_Positions:
-  - {x: 0.0000000144344625, y: 0.35558206, z: 16.757502}
-  - {x: 0.068351574, y: 0.2705004, z: 16.769876}
+  - {x: 0.0000000144344625, y: 0.835582, z: 16.757502}
+  - {x: 0.068351574, y: 0.7505003, z: 16.769876}
   m_Parameters:
     serializedVersion: 3
     widthMultiplier: 1
@@ -24259,8 +24931,8 @@ LineRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_Positions:
-  - {x: 0.07819974, y: 0.2866557, z: 16.3568}
-  - {x: -0.24618539, y: 0.16579026, z: 16.565962}
+  - {x: -0.06835129, y: 0.71227354, z: 16.332945}
+  - {x: -0.06835135, y: 0.30781972, z: 16.332945}
   m_Parameters:
     serializedVersion: 3
     widthMultiplier: 1
@@ -25943,8 +26615,8 @@ LineRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_Positions:
-  - {x: -0.35691467, y: 0.6898348, z: 16.787766}
-  - {x: -0.5899503, y: 0.68286073, z: 16.787651}
+  - {x: -0.35691467, y: 1.1698347, z: 16.787766}
+  - {x: -0.5899503, y: 1.1628608, z: 16.787651}
   m_Parameters:
     serializedVersion: 3
     widthMultiplier: 1
@@ -28831,8 +29503,8 @@ LineRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_Positions:
-  - {x: 0.000000015365785, y: 0.4725482, z: 16.748535}
-  - {x: 0.000000010709172, y: 0.74891347, z: 16.792044}
+  - {x: 0.000000015365785, y: 0.95254815, z: 16.748535}
+  - {x: 0.000000010709172, y: 1.2289134, z: 16.792044}
   m_Parameters:
     serializedVersion: 3
     widthMultiplier: 1
@@ -28982,8 +29654,8 @@ LineRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_Positions:
-  - {x: 0.13002035, y: 0.696625, z: 16.787472}
-  - {x: 0.35691467, y: 0.68983465, z: 16.787766}
+  - {x: 0.13002035, y: 1.1766249, z: 16.787472}
+  - {x: 0.35691467, y: 1.1698346, z: 16.787766}
   m_Parameters:
     serializedVersion: 3
     widthMultiplier: 1
@@ -31107,7 +31779,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!81 &2132550429
 AudioListener:
   m_ObjectHideFlags: 0
@@ -31157,7 +31829,7 @@ Camera:
     height: 1
   near clip plane: 0.3
   far clip plane: 1000
-  field of view: 58.8
+  field of view: 86.8
   orthographic: 0
   orthographic size: 100
   m_Depth: -1
@@ -31527,21 +32199,10 @@ SceneRoots:
   - {fileID: 720034758}
   - {fileID: 1950549875}
   - {fileID: 2132550433}
+  - {fileID: 1083567711}
+  - {fileID: 884743449}
   - {fileID: 606286480}
   - {fileID: 1310497174}
   - {fileID: 659385098}
   - {fileID: 1078757618}
   - {fileID: 929248811}
-
---- !u!225 &948102005
-CanvasGroup:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 948102000}
-  m_Enabled: 1
-  m_Alpha: 1
-  m_Interactable: 1
-  m_BlocksRaycasts: 1
-  m_IgnoreParentGroups: 0

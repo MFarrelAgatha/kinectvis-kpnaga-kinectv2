@@ -162,6 +162,71 @@ public class PlayerTungkuTracker : MonoBehaviour
     [Tooltip("Gunakan deteksi fisik postur berdasarkan ketinggian pinggul (Hips), sudut lutut, dan posisi kaki avatar di Unity.")]
     public bool enablePhysicalSquatDetection = true;
 
+    [Header("Filter Postur Aktif (Enable / Disable)")]
+    [Tooltip("Aktifkan deteksi postur Berdiri.")]
+    public bool enableStanding = true;
+    public bool enableBerdiri { get => enableStanding; set => enableStanding = value; }
+
+    [Tooltip("Aktifkan deteksi postur Jongkok.")]
+    public bool enableSquatting = true;
+    public bool enableJongkok { get => enableSquatting; set => enableSquatting = value; }
+
+    [Tooltip("Aktifkan deteksi postur Berlutut.")]
+    public bool enableKneeling = true;
+    public bool enableBerlutut { get => enableKneeling; set => enableKneeling = value; }
+
+    [Tooltip("Aktifkan deteksi postur Duduk Sila.")]
+    public bool enableSittingCrossLegged = true;
+    public bool enableDudukSila { get => enableSittingCrossLegged; set => enableSittingCrossLegged = value; }
+
+    [Tooltip("Aktifkan deteksi postur Duduk Emok.")]
+    public bool enableSittingEmok = true;
+    public bool enableDudukEmok { get => enableSittingEmok; set => enableSittingEmok = value; }
+
+    [Tooltip("Aktifkan deteksi postur Duduk Normal.")]
+    public bool enableSittingChair = true;
+    public bool enableDudukNormal { get => enableSittingChair; set => enableSittingChair = value; }
+    public bool enableDudukKursi { get => enableSittingChair; set => enableSittingChair = value; }
+
+    [Header("Sinkronisasi dengan PoseCalibrationManager")]
+    [Tooltip("Referensi ke PoseCalibrationManager. Jika ada, filter disable/enable otomatis sinkron.")]
+    public PoseCalibrationManager poseCalibrationManager;
+    [Tooltip("Otomatis sinkronkan filter aktif/nonaktif dari PoseCalibrationManager.")]
+    public bool autoSyncWithCalibrationManager = true;
+
+    public bool IsPostureEnabled(PostureType posture)
+    {
+        switch (posture)
+        {
+            case PostureType.Standing: return enableStanding;
+            case PostureType.Squatting: return enableSquatting;
+            case PostureType.Kneeling: return enableKneeling;
+            case PostureType.SittingCrossLegged: return enableSittingCrossLegged;
+            case PostureType.SittingEmok: return enableSittingEmok;
+            case PostureType.SittingChair: return enableSittingChair;
+            default: return true;
+        }
+    }
+
+    public void SetPostureEnabled(PostureType posture, bool enabled)
+    {
+        switch (posture)
+        {
+            case PostureType.Standing: enableStanding = enabled; break;
+            case PostureType.Squatting: enableSquatting = enabled; break;
+            case PostureType.Kneeling: enableKneeling = enabled; break;
+            case PostureType.SittingCrossLegged: enableSittingCrossLegged = enabled; break;
+            case PostureType.SittingEmok: enableSittingEmok = enabled; break;
+            case PostureType.SittingChair: enableSittingChair = enabled; break;
+        }
+    }
+
+    [Header("Pengaturan Counter Durasi")]
+    [Tooltip("Jalankan counter durasi waktu saat Duduk Normal (SittingChair).")]
+    public bool countDurationDuringSittingNormal = true;
+    [Tooltip("Jalankan counter durasi waktu untuk semua postur aktif non-berdiri (Jongkok, Duduk Normal, Berlutut, Sila, Emok).")]
+    public bool countDurationForAnyActivePosture = true;
+
     [Tooltip("Batas tinggi pinggul (Hips) dari lantai (meter) untuk JONGKOK (Default: 0.55m).")]
     [Range(0.2f, 0.7f)]
     public float squatHipsHeightThreshold = 0.55f;
@@ -411,10 +476,11 @@ public class PlayerTungkuTracker : MonoBehaviour
         // 2. Evaluasi status postur (Jongkok / Berdiri)
         EvaluatePosture();
 
-        // 3. Counter durasi jongkok (hanya bertambah saat Runtime/Play mode)
+        // 3. Counter durasi (bertambah saat Jongkok, Duduk Normal, atau postur aktif lainnya)
         if (Application.isPlaying)
         {
-            if (isJongkok)
+            bool isCounterActive = isJongkok || (countDurationDuringSittingNormal && isSittingChair) || (countDurationForAnyActivePosture && currentPostureType != PostureType.Standing);
+            if (isCounterActive)
             {
                 currentJongkokDuration += Time.deltaTime;
             }
@@ -694,29 +760,48 @@ public class PlayerTungkuTracker : MonoBehaviour
                 ankleAsymmetry = Mathf.Abs((leftFootSide + rightFootSide) * 0.5f);
             }
 
+            // Sinkronkan otomatis filter dari PoseCalibrationManager jika ada
+            if (autoSyncWithCalibrationManager)
+            {
+                if (poseCalibrationManager == null)
+                {
+                    poseCalibrationManager = GetComponent<PoseCalibrationManager>() ?? FindAnyObjectByType<PoseCalibrationManager>();
+                }
+                if (poseCalibrationManager != null)
+                {
+                    enableStanding = poseCalibrationManager.enableStanding;
+                    enableSquatting = poseCalibrationManager.enableSquatting;
+                    enableKneeling = poseCalibrationManager.enableKneeling;
+                    enableSittingCrossLegged = poseCalibrationManager.enableSittingCrossLegged;
+                    enableSittingEmok = poseCalibrationManager.enableSittingEmok;
+                    enableSittingChair = poseCalibrationManager.enableSittingChair;
+                }
+            }
+
             // 1. Kriteria: BERLUTUT (Kneeling)
-            bool isKneeling = (lowestKneeHeight < kneelingKneeHeightThreshold)
+            bool isKneeling = enableKneeling
+                && (lowestKneeHeight < kneelingKneeHeightThreshold)
                 && (liveHipHeightToGround > 0.20f && liveHipHeightToGround < kneelingHipHeightThreshold);
 
             // 2. Kriteria: DUDUK SILA (SittingCrossLegged)
-            bool isSila = !isKneeling
+            bool isSila = enableSittingCrossLegged && !isKneeling
                 && (liveHipHeightToGround > 0f && liveHipHeightToGround < floorSittingHipThreshold)
                 && (kneeSpread >= sittingCrossLeggedKneeSpreadThreshold);
 
             // 3. Kriteria: DUDUK EMOK (SittingEmok)
-            bool isEmok = !isKneeling && !isSila
+            bool isEmok = enableSittingEmok && !isKneeling && !isSila
                 && (liveHipHeightToGround > 0f && liveHipHeightToGround < floorSittingHipThreshold)
                 && (ankleAsymmetry >= sittingEmokAnkleAsymmetryThreshold);
 
             // 4. Kriteria: JONGKOK (Squatting)
-            bool isSquatting = !isKneeling && !isSila && !isEmok
+            bool isSquatting = enableSquatting && !isKneeling && !isSila && !isEmok
                 && (liveHipHeightToGround > 0f && liveHipHeightToGround < squatHipsHeightThreshold)
                 && (lowestKneeHeight > 0.14f)
                 && (liveHorizontalHipToFoot < maxSquatHorizontalDist)
                 && (liveKneeAngle < squatKneeAngleThreshold || liveHipToFootDistance < squatLegDistanceThreshold);
 
             // 5. Kriteria: DUDUK NORMAL (SittingChair)
-            bool isChairSitting = !isKneeling && !isSila && !isEmok && !isSquatting
+            bool isChairSitting = enableSittingChair && !isKneeling && !isSila && !isEmok && !isSquatting
                 && (liveHipHeightToGround > 0f && liveHipHeightToGround < sitHipsHeightThreshold)
                 && (liveKneeAngle < sitKneeAngleThreshold);
 
@@ -764,31 +849,31 @@ public class PlayerTungkuTracker : MonoBehaviour
             if (KinectSessionManager.Instance != null)
             {
                 string s = KinectSessionManager.Instance.CurrentState;
-                if (s == "Squatting" || s == "Jongkok")
+                if (enableSquatting && (s == "Squatting" || s == "Jongkok"))
                 {
                     currentPostureType = PostureType.Squatting;
                     currentPosture = "Squatting";
                     isJongkok = true;
                 }
-                else if (s == "Kneeling" || s == "Berlutut")
+                else if (enableKneeling && (s == "Kneeling" || s == "Berlutut"))
                 {
                     currentPostureType = PostureType.Kneeling;
                     currentPosture = "Kneeling";
                     isJongkok = false;
                 }
-                else if (s == "SittingCrossLegged" || s == "Duduk Sila")
+                else if (enableSittingCrossLegged && (s == "SittingCrossLegged" || s == "Duduk Sila"))
                 {
                     currentPostureType = PostureType.SittingCrossLegged;
                     currentPosture = "SittingCrossLegged";
                     isJongkok = false;
                 }
-                else if (s == "SittingEmok" || s == "Duduk Emok")
+                else if (enableSittingEmok && (s == "SittingEmok" || s == "Duduk Emok"))
                 {
                     currentPostureType = PostureType.SittingEmok;
                     currentPosture = "SittingEmok";
                     isJongkok = false;
                 }
-                else if (s == "SittingChair" || s == "Sitting" || s == "Duduk Kursi" || s == "Duduk Normal")
+                else if (enableSittingChair && (s == "SittingChair" || s == "Sitting" || s == "Duduk Kursi" || s == "Duduk Normal"))
                 {
                     currentPostureType = PostureType.SittingChair;
                     currentPosture = "SittingChair";
@@ -1094,7 +1179,8 @@ public class PlayerTungkuTracker : MonoBehaviour
             // SISTEM LAMA (Pop-up hide/show dengan SetActive)
             if (!manualControlPopups)
             {
-                bool shouldShowJongkokPopups = forceShowAllPopups || !showPopupsOnlyWhenJongkok || isJongkok;
+                bool isCounterActive = isJongkok || (countDurationDuringSittingNormal && isSittingChair) || (countDurationForAnyActivePosture && currentPostureType != PostureType.Standing);
+                bool shouldShowJongkokPopups = forceShowAllPopups || !showPopupsOnlyWhenJongkok || isCounterActive;
 
                 if (panelInfoPosisiJongkok != null && panelInfoPosisiJongkok.activeSelf != shouldShowJongkokPopups)
                     panelInfoPosisiJongkok.SetActive(shouldShowJongkokPopups);
